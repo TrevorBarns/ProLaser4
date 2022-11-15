@@ -6,7 +6,7 @@ local tempHidden = false
 local shown = false
 local hudMode = false
 local inFirstPersonPed = true
-local LidarFOV = cfg.maxFOV*0.95
+local LidarFOV = (cfg.minFOV+cfg.maxFOV)*0.5
 local aim_down_sights = false
 
 --	MAIN GET VEHICLE THREAD
@@ -178,7 +178,6 @@ CreateThread(function()
 						Wait(1)
 					end
 
-					LidarFOV = (cfg.maxFOV+cfg.minFOV)*0.5
 					RenderScriptCams(false, false, 0, 1, 0)
 					SetScaleformMovieAsNoLongerNeeded(scaleform)
 					DestroyCam(cam, false)
@@ -219,10 +218,10 @@ function CheckInputRotation(cam, zoomvalue)
 	rightAxisY = GetDisabledControlNormal(0, 221)
 	rotation = GetCamRot(cam, 2)
 	if rightAxisX ~= 0.0 or rightAxisY ~= 0.0 then
-		new_z = rotation.z + rightAxisX*-1.0*(cfg.verticalPanSpeed)*(zoomvalue+0.1)
-		new_x = math.max(math.min(20.0, rotation.x + rightAxisY*-1.0*(cfg.horizontalPanSpeed)*(zoomvalue+0.1)), -89.5) -- Clamping at top (cant see top of heli) and at bottom (doesn't glitch out in -90deg)
+		new_z = rotation.z + rightAxisX*-1.0*(cfg.verticalPanSpeed-zoomvalue*8)
+		new_x = math.max(math.min(40.0, rotation.x + rightAxisY*-1.0*(cfg.horizontalPanSpeed-zoomvalue*8)), -89.5) -- Clamping at top (cant see top of heli) and at bottom (doesn't glitch out in -90deg)
 		SetCamRot(cam, new_x, 0.0, new_z, 2)
-		SetGameplayCamRelativeRotation(new_x, 0.0, new_z)
+		SetGameplayCamRelativeRotation(0.0, new_x, new_z)
 	end
 end
 
@@ -230,10 +229,10 @@ end
 local current_LidarFOV
 function HandleZoom(cam)
 	if  IsDisabledControlPressed(0,15) then -- Scrollup
-		LidarFOV = math.max(LidarFOV - cfg.zoomSpeed, cfg.minFOV)
+		LidarFOV = math.max(LidarFOV - cfg.zoomSpeed, cfg.maxFOV)
 	end
 	if  IsDisabledControlPressed(0,334) then
-		LidarFOV = math.min(LidarFOV + cfg.zoomSpeed/4, cfg.maxFOV) -- ScrollDown	]
+		LidarFOV = math.min(LidarFOV + cfg.zoomSpeed/6, cfg.minFOV) -- ScrollDown
 	end
 	current_LidarFOV = GetCamFov(cam)
 	if math.abs(LidarFOV-current_LidarFOV) < 0.1 then -- the difference is too small, just set the value directly to avoid unneeded updates to FOV of order 10^-5
