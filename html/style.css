@@ -1,0 +1,188 @@
+@font-face {
+    font-family: 'Digital';
+    src: url('./fonts/digital_counter_7_italic.ttf');
+}
+@font-face {
+    font-family: 'EnvyCodeR';
+    src: url('./fonts/EnvyCodeR-Bold.ttf');
+}
+@font-face {
+    font-family: 'SmallLcd';
+    src: url('./fonts/SmallLcdSignRegular-eLvm.ttf');
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+}
+
+#calibration {
+	position: absolute;
+    font-family: "EnvyCodeR";
+    font-weight: bolder;
+    font-size: 30px;
+    color: #4fdb21;
+    left: 25%;
+    top: 27%;
+	text-align: center;
+}
+
+#calibrationprogress {
+	position: absolute;
+    font-family: "EnvyCodeR";
+    font-weight: bolder;
+    color: #4fdb21;
+    top: 38%;
+    left: 29%;
+    font-size: 24px;
+	text-align: center;
+}
+
+#calibrationtimer {
+    top: 46%;
+    left: 45%;
+    font-size: 22px;
+    position: absolute;
+    font-family: "EnvyCodeR";
+    font-weight: bolder;
+    color: rgb(79, 219, 33);
+    text-align: center;
+}
+
+#hud {
+	display: grid;
+    grid-row: 1/2;
+    position: absolute;
+    background: url(textures/hud_sight.png);
+    background-repeat: no-repeat;
+	width: 100%;
+    height: 100%;
+    left: 0px;
+    top: 0px;
+    background-size: cover;
+    background-position: bottom;
+}
+
+#rangehud{
+	font-family: 'SmallLcd';
+    color: #d0db21;
+    margin: 24px 0px -1px;
+    grid-column: 1;
+    grid-row: 1;
+    text-align: center;
+    margin-top: 30px;
+	position: relative;
+    top: 72%;
+    font-size: 48px;
+    font-weight: 100;
+	text-shadow: 3px 2px 0px rgb(251 12 12 / 20%), 0px -2px 1px rgb(49 251 12 / 50%), -1px 1px 1px rgb(0 0 0 / 50%);
+}
+
+#speedhud{
+    font-family: 'SmallLcd';
+    color: #d0db21;
+    grid-column: 1;
+    grid-row: 2;
+    text-align: center;
+    position: relative;
+    font-weight: 100;
+    font-size: 48px;
+    margin-left: -22px;
+    top: 15%;
+	text-shadow: 3px 2px 0px rgb(251 12 12 / 20%), 0px -2px 1px rgb(49 251 12 / 50%), -1px 1px 1px rgb(0 0 0 / 50%);
+}
+
+#left {
+    display: grid;
+    grid-row: 1/2;
+    float: left;
+    position: absolute;
+    left: 19.5%;
+    top: 33%;
+    margin: 0px 0px 0px 0px;
+    padding: 0px;
+    width: 22%;
+    height: 27%;
+}
+
+#unit {
+	position: relative;
+    font-size: 36px;
+    color: #4fdb21;
+    font-family: 'ENVYCODER';
+    grid-row: 2;
+    grid-column: 2;
+    margin: 0px 20px 0px 0px;
+    text-align: right;
+}
+
+#speed {
+    font-family: 'ENVYCODER';
+    font-weight: bolder;
+    font-size: 64px;
+    color: #4fdb21;
+    text-align: right;
+    grid-column: 2;
+    grid-row: 1;
+    margin: -4px 0px -19px 0px;
+}
+
+#right {
+display: grid;
+    grid-column: 1/2;
+    grid-row: 1/2;
+    position: absolute;
+    float: right;
+    top: 33%;
+    left: 45%;
+    width: 37%;
+    height: 26%;
+}
+
+#range {
+    font-family: "EnvyCodeR";
+    font-weight: bolder;
+    font-size: 30px;
+    color: #4fdb21;
+    margin: 4px 0px -26px 0px;
+    grid-column: 1;
+    grid-row: 1;
+}
+
+#timer {
+    top: 29%;
+    font-size: 21px;
+    color: #4fdb21;
+    font-family: 'ENVYCODER';
+    margin: -13px 0px 0px 13px;
+    grid-row: 2;
+}
+
+#verticaldiv {
+    left: 42%;
+    top: 27%;
+    width: 0.5%;
+    height: 23%;
+    background-color: #4fdb21;
+    padding: 0px;
+	position: absolute;
+    margin: 32px 0px 0px 0px;
+}
+
+#lasergun {
+    display: none;
+	position: absolute;
+    height: 389px;
+    width: 634px;
+    left: 70%;
+    bottom: 2%;
+	margin-bottom: 0%;
+    background: url("textures/lidar.png");
+	background-size: contain;
+    transform: scale(0.75);
+    transform-origin: bottom;
+    left: 60%;
+}
