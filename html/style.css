@@ -19,6 +19,18 @@ body {
     width: 100%;
 }
 
+#JammerDisplay{
+    display: block;
+    position: absolute;
+    bottom: 5%;
+    right: 0%;
+    width: 210px;
+    height: 102px;
+	background-image: url(textures/jammer.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
 #calibration {
 	position: absolute;
     font-family: "EnvyCodeR";
@@ -52,7 +64,7 @@ body {
     text-align: center;
 }
 
-#hud {
+#AdsDisplay {
 	display: grid;
     grid-row: 1/2;
     position: absolute;
@@ -172,7 +184,7 @@ display: grid;
     margin: 32px 0px 0px 0px;
 }
 
-#lasergun {
+#LidarDisplayContainer {
     display: none;
 	position: absolute;
     height: 389px;

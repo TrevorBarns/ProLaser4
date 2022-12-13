@@ -5,22 +5,26 @@ var timerHandle;
 var sniperscope = false
 var clockVolume = 0.02; 
 var calibrationVolume = 0.02; 
+var jammingVolume = 0.02;
+
 const context = new AudioContext();
 var clockTone = createClockTone( context )
 var clockToneMute;
-
+var lasedHandle;
+var played = false; 
+var waiting = false;
 $(document).ready(function(){
-	$('#hud').hide();
-	$('#lasergun').hide();
+	$('#JammerDisplay').hide();
+	$('#AdsDisplay').hide();
+	$('#LidarDisplayContainer').hide();
     window.addEventListener('message', function(event) {
         if (event.data.action == 'SetLidarDisplayState') {
-            $('#lasergun').show();
 			if (event.data.state){
-				$('#lasergun').show();
+				$('#LidarDisplayContainer').show();
 			} else{
-				$('#lasergun').hide();
+				$('#LidarDisplayContainer').hide();
 			}
-		} else if (event.data.action == 'SendClockData') {
+		} else if (event.data.action == 'SetClockData') {
 			$('#speed').text(event.data.speed);
 			$('#range').text(event.data.range+'ft');
 			$('#rangehud').text(event.data.range+'ft');
@@ -28,75 +32,90 @@ $(document).ready(function(){
 			$('#lock').hide();
 			clearInterval(timerHandle);
 			if (event.data.towards == true){
+				$('#arrowup').hide();
+				$('#arrowdown').show();
 				$('#speedhud').text('- '+event.data.speed);
 				timer();
 				clearInterval(clockToneMute);
 				playClockTone();
 			} else if (event.data.towards == false){
+				$('#arrowup').show();
+				$('#arrowdown').hide();
 				$('#speedhud').text('+ '+event.data.speed);
 				timer();
 				clearInterval(clockToneMute);
 				playClockTone();
 			} else{
+				$('#arrowup').hide();
+				$('#arrowdown').hide();
 				$('#speedhud').text('/ '+event.data.speed);
 				clearInterval(clockToneMute);
 				clockTone.vol.gain.exponentialRampToValueAtTime( 0.00001, context.currentTime + 0.1 );
 			}
 		} else if (event.data.action == 'SetDisplayMode') {
 			if (event.data.mode == 'ADS') {
-				$('#hud').show()
-				$('#lasergun').hide()
+				$('#AdsDisplay').show()
+				$('#LidarDisplayContainer').hide()
 			} else{
-				$('#hud').hide()
-				$('#lasergun').show()
+				$('#AdsDisplay').hide()
+				$('#LidarDisplayContainer').show()
 			}
- 		} else if (event.data.action == 'SendCalibrationState') {
+ 		} else if (event.data.action == 'SetCalibrationState') {
 			if (event.data.state) {
-				$('#left').show();
-				$('#right').show();
-				$('#verticaldiv').show();
-				$('#timer').text('');
-				$('#calibration').hide();
-				$('#calibrationprogress').hide();
-				$('#calibrationtimer').hide();
-				playSound('LidarCalibration')
 				clearInterval(timerHandle);
+				$('#timer').text('');
+				$('#MainContainer').show();
+				$('#CalibrationContainer').hide();
+				playSound('LidarCalibration', calibrationVolume)
 			} else{
-				$('#left').hide();
-				$('#right').hide();
-				$('#verticaldiv').hide();
-				$('#calibration').show();
-				$('#calibrationprogress').show();
-				$('#calibrationtimer').show();
 				clearInterval(timerHandle);
 				timer();
+				$('#MainContainer').hide();
+				$('#CalibrationContainer').show();
 			}	
-		} else if (event.data.action == 'SendCalibrationProgress') {
+		} else if (event.data.action == 'SetCalibrationProgress') {
 			$('#calibrationprogress').text(event.data.progress);		
-		} else if (event.data.action == 'scopestyle') {
-			if (sniperscope){
-				$('#hud').css("background-image", "url(textures/hud_sight.png)");  
+		} else if (event.data.action == 'ToggleScopeStyle') {
+			if (event.data.sniperScope){
+				$('#AdsDisplay').css("background-image", "url(textures/hud_sniper.png)");  
 			} else {
-				$('#hud').css("background-image", "url(textures/hud_sniper.png)");  
+				$('#AdsDisplay').css("background-image", "url(textures/hud_sight.png)");  
 			}
 			sniperscope = !sniperscope;
  		} else if (event.data.action == 'SetConfigVars') {
 			calibrationVolume = event.data.calibrationSFX
 			clockVolume = event.data.clockSFX
-			console.log(clockVolume)
+			jammingVolume = event.data.jammingSFX
+		}	else if (event.data.action == 'SetJammerDisplayState'){
+			if (event.data.state){
+				$('#JammerDisplay').show();
+			} else{
+				$('#JammerDisplay').hide();
+			}
+		}	else if (event.data.action == 'SetJammerMode'){
+			if (event.data.mode == 'idle'){
+				$('#JammerDisplay').css("background-image", "url(textures/jammer.png)");  
+			} else if (event.data.mode == 'green'){
+				$('#JammerDisplay').css("background-image", "url(textures/jammer_green.png)");  
+			} else if (event.data.mode == 'blue'){
+				$('#JammerDisplay').css("background-image", "url(textures/jammer_blue.png)");  
+			} else if (event.data.mode == 'red'){
+				$('#JammerDisplay').css("background-image", "url(textures/jammer_red.png)");  
+				lasedAudio();
+			} 
 		}
     });
 });
 
  //Credit to xotikorukx playSound Fn.
-function playSound(file){
+function playSound(file, volume){
 	if (audioPlayer != null) {
 		audioPlayer.pause();
 	}
 	soundID++;
 
 	audioPlayer = new Audio("./sounds/" + file + ".ogg");
-	audioPlayer.volume = calibrationVolume;
+	audioPlayer.volume = volume;
 	var didPlayPromise = audioPlayer.play();
 
 	if (didPlayPromise === undefined) {
@@ -134,13 +153,36 @@ String.prototype.toHHMMSS = function () {
 
 function timer(){
 	start = Date.now();
+	$('#lock').show();
+	$('#timer').show();
 	timerHandle = setInterval(function() {
 		delta = Date.now() - start; // milliseconds elapsed since start
-		$('#lock').show();
-		$('#timer').show();
 		$('#timer').text(delta.toString().toHHMMSS());
 		$('#calibrationtimer').text(delta.toString().toHHMMSS());
 	}, 500); // update about every second
+}
+
+function lased(color){
+	$('#JammerDisplayLarge').css("background-image", "url(textures/jammer_red.png)");  
+	lasedHandle = setInterval(function(color) {
+		$('#JammerDisplay').css("background-image", "url(textures/jammer.png)");  
+	}, 100); // update about every second
+}
+
+function lasedAudio(){
+	if (!played){
+		played = true;
+		playSound('LaserAlert', jammingVolume)
+	}
+	if (!waiting){
+		waiting = true
+		console.log('setting')
+		lasedHandle = setInterval(function() {
+			played = false;
+			waiting = false;
+			console.log('resetting')
+		}, 10000); // update about every second
+	}
 }
 
 function playClockTone(){

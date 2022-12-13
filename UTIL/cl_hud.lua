@@ -1,10 +1,12 @@
 HUD = {}
 
 local cfg = cfg
+local lastMode = 'idle'
 
 function HUD:SetLidarDisplayState(state)
 	SendNUIMessage({ action = "SetLidarDisplayState", state = state })
 end
+
 
 function HUD:SetDisplayMode(mode)
 	SendNUIMessage({ action = "SetDisplayMode", mode = mode })
@@ -15,12 +17,13 @@ function HUD:SendAudioVolumes()
 		action = "SetConfigVars",
 		clockSFX = cfg.clockSFX, 
 		calibrationSFX = cfg.calibrationSFX, 
+		jammingSFX = cfg.jammingSFX, 
 	})
 end
 
 function HUD:SendLidarUpdate(speed, range, towards)
 	SendNUIMessage({
-		action = "SendClockData",
+		action = "SetClockData",
 		speed = speed,
 		range = range,
 		towards = towards,
@@ -31,9 +34,10 @@ function HUD:ClearLidarDisplay()
 	self:SendLidarUpdate('---', '----', -1)
 end
 
-function HUD:ChangeSightStyle()
+function HUD:ChangeSightStyle(useSniperScope)
 	SendNUIMessage({
-		action = "scopestyle",
+		action = "ToggleScopeStyle",
+		sniperScope = useSniperScope
 	})
 end
 							
@@ -46,19 +50,19 @@ end
 
 function HUD:DisplayCalibration()
 	CreateThread(function()
-		local wait1 = math.random(7,80)*100
+		local wait1 = math.random(7,50)*100
 		local wait2 = math.random(150,750)
-		local wait3 = math.random(7,30)*100
-		SendNUIMessage({ action = "SendCalibrationState", state = false })
+		local wait3 = math.random(7,20)*100
+		SendNUIMessage({ action = "SetCalibrationState", state = false })
 		Wait(1000)
-		SendNUIMessage({action = "SendCalibrationProgress", progress = "[|||________________]" })
+		SendNUIMessage({action = "SetCalibrationProgress", progress = "[|||________________]" })
 		Wait(wait1)
-		SendNUIMessage({ action = "SendCalibrationProgress", progress = "[||||||||___________]" })
+		SendNUIMessage({ action = "SetCalibrationProgress", progress = "[||||||||___________]" })
 		Wait(wait2)
-		SendNUIMessage({ action = "SendCalibrationProgress", progress = "[||||||||||||||||||_]" })		
+		SendNUIMessage({ action = "SetCalibrationProgress", progress = "[||||||||||||||||||_]" })		
 		Wait(wait3)
-		SendNUIMessage({ action = "SendCalibrationProgress", progress = "[|||||||||||||||||||]" })
-		SendNUIMessage({ action = "SendCalibrationState", state = true })
+		SendNUIMessage({ action = "SetCalibrationProgress", progress = "[|||||||||||||||||||]" })
+		SendNUIMessage({ action = "SetCalibrationState", state = true })
 		Wait(500)
 		self:ClearLidarDisplay()
 		calibrated = true
@@ -67,8 +71,22 @@ end
 
 
 function HUD:SetCalibrationState(state)
-	SendNUIMessage({ action = "SendCalibrationState", state = state })
+	SendNUIMessage({ action = "SetCalibrationState", state = state })
 	if state then
 		HUD:ClearLidarDisplay()
+	end
+end
+
+
+-- [[JAMMER]]
+function HUD:SetJammerDisplayState(state)
+	SendNUIMessage({ action = "SetJammerDisplayState", state = state })
+end
+
+function HUD:SetJammerMode(mode, override)
+	override = override or false
+	if mode ~= lastMode or override then
+		SendNUIMessage({ action = "SetJammerMode", mode = mode })
+		lastMode = mode
 	end
 end

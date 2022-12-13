@@ -8,7 +8,7 @@ cfg.trigger = 24
 cfg.changeSight = 26
 --	Changes ADS style between sniper scope and modeled ProLaser 4 sight (default: C)
 
-cfg.requireCalibration = true
+cfg.requireCalibration = false
 --	Require players to calibrate or override calibration message.
 cfg.lidarGunHash = "WEAPON_VINTAGEPISTOL"
 --	Lidar gun weapon string
@@ -26,10 +26,19 @@ cfg.maxFOV = 15.0
 --	Max FOV when aiming down sight, lower is more zoomed in (default: 15.0)
 cfg.minFOV = 50.0
 --	Min FOV when aiming down sight, lower is more zoomed in (default: 50.0)
-cfg.zoomSpeed = 3.0
+cfg.zoomSpeed = 2.0
 --	Rate at which to zoom in and out (default: 3.0)
 cfg.horizontalPanSpeed = 10.0
 --	Speed at which to pan camera left-right (default: 10.0)
 cfg.verticalPanSpeed = 10.0
 --	Speed at which to pan camera up-down (default: 10.0)
 cfg.displayControls = true
+--	Display ADS controls: right-click toggle; C change scope style
+
+--	[[JAMMER Paremeters]]
+cfg.enableCommand = 'laserjammer'
+--	Command to toggle lidar jammer
+cfg.cooldownTime = 4
+--	Time is seconds after jamming before re-enabling jamming
+cfg.jammingSFX = 0.2
+--	Volume to play lidar detection alert
