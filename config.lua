@@ -8,7 +8,7 @@ cfg.trigger = 24
 cfg.changeSight = 26
 --	Changes ADS style between sniper scope and modeled ProLaser 4 sight (default: C)
 
-cfg.requireCalibration = true
+cfg.requireCalibration = false
 --	Require players to calibrate or override calibration message.
 cfg.lidarGunHash = "WEAPON_VINTAGEPISTOL"
 --	Lidar gun weapon string

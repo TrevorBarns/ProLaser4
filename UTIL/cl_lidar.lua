@@ -39,8 +39,6 @@ end)
 
 -- REMOVE CONTROLS & HUD MESSAGE
 Citizen.CreateThread( function()
-
-
 	while true do
 		Citizen.Wait(1)
 		if holdingRadarGun then
@@ -66,7 +64,8 @@ Citizen.CreateThread( function()
 	while true do
 		Citizen.Wait(100)
 		inFirstPersonPed = not isInVehicle and GetFollowPedCamViewMode() == 4
-		if not hudMode and aim_down_sights and inFirstPersonPed then
+		inFirstPersonVeh = isInVehicle and GetFollowVehicleCamViewMode() == 4
+		if not hudMode and aim_down_sights and (inFirstPersonPed or inFirstPersonVeh) then
 			if not shown then
 				shown = true
 				if not calibrated and not calibrating then
@@ -76,7 +75,7 @@ Citizen.CreateThread( function()
 			end
 			hudMode = true
 			HUD:SetDisplayMode('ADS')
-		elseif shown and hudMode and not (aim_down_sights and inFirstPersonPed) then
+		elseif shown and hudMode and not (aim_down_sights and (inFirstPersonPed or inFirstPersonVeh)) then
 			hudMode = false
 			HUD:SetDisplayMode('DISPLAY')
 		end
@@ -113,14 +112,14 @@ Citizen.CreateThread( function()
 			end
 			
 			-- toggle ADS if first person and aim, otherwise unADS
-			if not aim_down_sights and IsControlJustPressed(0,25) and inFirstPersonPed then
+			if not aim_down_sights and IsControlJustPressed(0,25) and (inFirstPersonPed or inFirstPersonVeh) then
 				aim_down_sights = true
 				SetPlayerForcedAim(PlayerId(), true)
-			elseif aim_down_sights and (IsDisabledControlJustPressed(0,177) or IsControlJustPressed(0,25) or not inFirstPersonPed) then
+			elseif aim_down_sights and (IsDisabledControlJustPressed(0,177) or IsControlJustPressed(0,25) or not (inFirstPersonPed or inFirstPersonVeh)) then
 				aim_down_sights = false
 				SetPlayerForcedAim(PlayerId(), false)
 				Wait(100)
-			elseif not aim_down_sights and inFirstPersonPed and IsPlayerFreeAiming(PlayerId()) then
+			elseif not aim_down_sights and (inFirstPersonPed or inFirstPersonVeh) and IsPlayerFreeAiming(PlayerId()) then
 				aim_down_sights = true
 				SetPlayerForcedAim(PlayerId(), true)
 			end
@@ -156,35 +155,32 @@ local cam, weap, zoomvalue
 CreateThread(function()
 	while true do
         Wait(1)
-		if not isInVehicle then
-			if aim_down_sights then
-				if not isInVehicle then
-					cam = CreateCam("DEFAULT_SCRIPTED_FLY_CAMERA", true)
-					weap = GetCurrentPedWeaponEntityIndex(ped)
-					AttachCamToEntity(cam, weap, 0.0,0.00 ,0.0, true)
-					SetCamRot(cam, GetGameplayCamRot(2), 2)
-					SetCamFov(cam, LidarFOV)
-					RenderScriptCams(true, false, 0, 1, 0)
-					
-					if cfg.displayControls then
-						HUD:DisplayControlHint()
-						cfg.displayControls = false
-					end
-
-					while aim_down_sights and not IsEntityDead(ped) and not isInVehicle do	
-						zoomvalue = (1.0/(cfg.maxFOV-cfg.minFOV))*(LidarFOV-cfg.minFOV)
-						CheckInputRotation(cam, zoomvalue)			
-						HandleZoom(cam)
-						Wait(1)
-					end
-
-					RenderScriptCams(false, false, 0, 1, 0)
-					SetScaleformMovieAsNoLongerNeeded(scaleform)
-					DestroyCam(cam, false)
-				end
+		if aim_down_sights then
+			cam = CreateCam("DEFAULT_SCRIPTED_FLY_CAMERA", true)
+			weap = GetCurrentPedWeaponEntityIndex(ped)
+			if isInVehicle then
+				AttachCamToEntity(cam, weap, -0.018, -0.2, -0.05, true)
+			else
+				AttachCamToEntity(cam, weap, 0.0, -0.2, -0.0, true)
 			end
-		else
-			Wait(500)
+			SetCamRot(cam, GetGameplayCamRot(2), 2)
+			SetCamFov(cam, LidarFOV)
+			RenderScriptCams(true, false, 0, 1, 0)
+			if cfg.displayControls then
+				HUD:DisplayControlHint()
+				cfg.displayControls = false
+			end
+
+			while aim_down_sights and not IsEntityDead(ped) do	
+				zoomvalue = (1.0/(cfg.maxFOV-cfg.minFOV))*(LidarFOV-cfg.minFOV)
+				CheckInputRotation(cam, zoomvalue)			
+				HandleZoom(cam)
+				Wait(1)
+			end
+
+			RenderScriptCams(false, false, 0, 1, 0)
+			SetScaleformMovieAsNoLongerNeeded(scaleform)
+			DestroyCam(cam, false)
 		end
 	end
 end)
@@ -218,20 +214,28 @@ function CheckInputRotation(cam, zoomvalue)
 	rightAxisY = GetDisabledControlNormal(0, 221)
 	rotation = GetCamRot(cam, 2)
 	if rightAxisX ~= 0.0 or rightAxisY ~= 0.0 then
-		new_z = rotation.z + rightAxisX*-1.0*(cfg.verticalPanSpeed-zoomvalue*8)
-		new_x = math.max(math.min(40.0, rotation.x + rightAxisY*-1.0*(cfg.horizontalPanSpeed-zoomvalue*8)), -89.5) -- Clamping at top (cant see top of heli) and at bottom (doesn't glitch out in -90deg)
-		SetCamRot(cam, new_x, 0.0, new_z, 2)
-		SetGameplayCamRelativeRotation(0.0, new_x, new_z)
+		if not isInVehicle then
+			new_z = rotation.z + rightAxisX*-1.0*(cfg.verticalPanSpeed-zoomvalue*8)
+			new_x = math.max(math.min(40.0, rotation.x + rightAxisY*-1.0*(cfg.horizontalPanSpeed-zoomvalue*8)), -89.5) -- Clamping at top (cant see top of heli) and at bottom (doesn't glitch out in -90deg)
+			SetCamRot(cam, new_x, 0.0, new_z, 2)
+			SetGameplayCamRelativeRotation(0.0, new_x, new_z)
+		else
+			new_z = rotation.z + rightAxisX*-1.0*(cfg.verticalPanSpeed-zoomvalue*8) 
+			new_x = math.max(math.min(20.0, rotation.x + rightAxisY*-1.0*(cfg.horizontalPanSpeed-zoomvalue*8)), -20.0) -- Clamping at top (cant see top of heli) and at bottom (doesn't glitch out in -90deg)
+			SetCamRot(cam, new_x, 0.0, new_z, 2)
+			SetGameplayCamRelativeRotation(0.0, 0.0, 0.0)
+		end
 	end
 end
+
 
 --	AIM DOWNSIGHTS ZOOM
 local current_LidarFOV
 function HandleZoom(cam)
-	if  IsDisabledControlPressed(0,15) then -- Scrollup
+	if  IsDisabledControlPressed(0,15) or IsDisabledControlPressed(0, 99) then -- Scrollup
 		LidarFOV = math.max(LidarFOV - cfg.zoomSpeed, cfg.maxFOV)
 	end
-	if  IsDisabledControlPressed(0,334) then
+	if  IsDisabledControlPressed(0,334) or IsDisabledControlPressed(0, 16) then
 		LidarFOV = math.min(LidarFOV + cfg.zoomSpeed/6, cfg.minFOV) -- ScrollDown
 	end
 	current_LidarFOV = GetCamFov(cam)
