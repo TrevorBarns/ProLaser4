@@ -19,13 +19,10 @@ files {
 	'metas/*.meta',
 }
 
+data_file 'WEAPONCOMPONENTSINFO_FILE' 'metas/dlc_hipster.meta'
+data_file 'WEAPONINFO_FILE_PATCH' 'metas/weaponvintagepistol.meta'
+
 client_scripts{
 	'config.lua',
 	'UTIL/cl_*.lua',
 }
-
-escrow_ignore {
-	'config.lua',
-}
-
-
