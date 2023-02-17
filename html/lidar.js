@@ -1,5 +1,4 @@
 var audioPlayer = null;
-var loopedAudioPlayer = null;
 var soundID = 0;
 var start;
 var timerHandle;
