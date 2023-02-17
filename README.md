@@ -10,10 +10,13 @@
 
 ### Screenshots
 <p align="center">
-<img align="center" width="600" src="https://i.imgur.com/pNr2Z9f.png">
+<img align="center" width="600" src="https://i.imgur.com/l6RM7b3.png"><img align="center" width="600" src="https://i.imgur.com/fKvGpZS.png">
 </p>
 <p align="center">
 Lidar Main Display | Recalled Events Display
+</p>
+<p align="center">
+<img align="center" width="600" src="https://i.imgur.com/NBbDjsm.png">
 </p>
 <p align="center">
 <img align="center" width="600" src="https://i.imgur.com/94NIDH4.png">
