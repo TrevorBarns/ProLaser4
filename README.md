@@ -16,7 +16,7 @@
 Lidar Main Display | Recalled Events Display
 </p>
 <p align="center">
-<img align="center" width="600" src="https://i.imgur.com/NBbDjsm.png">
+<img align="center" width="400" src="https://i.imgur.com/NBbDjsm.png">
 </p>
 <p align="center">
 <img align="center" width="600" src="https://i.imgur.com/94NIDH4.png">
