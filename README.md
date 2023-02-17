@@ -2,6 +2,12 @@
 ### Support, Suggestions, and Updates: [TrevorBarns Development Discord](https://discord.com/invite/PXYQ4T8wB9)
 <a href="https://discord.link/lvc"><img target="_blank" src="https://discordapp.com/api/guilds/344333824911605762/widget.png?style=banner3"></a>
 
+### Features
+* Redicle / HUD for first person aim down sight.
+* History / Recalled Events menu for viewing previous clocks. Persistant across relogs.
+* Accurate on onscreen recreation of ProLaser4 rear display.
+* Audible feedback.
+
 ## Other Resources
 * [Luxart Vehicle Control: Fleet](https://github.com/TrevorBarns/luxart-vehicle-control-fleet)
 * [Luxart Vehicle Control - Siren Packs](https://github.com/TrevorBarns/luxart-vehicle-control-extras)
