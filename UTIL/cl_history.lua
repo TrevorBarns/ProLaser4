@@ -1,7 +1,7 @@
 HIST = { }
 HIST.history = { }
 
-local save_prefix = 'prolaser4_'
+local savePrefix = 'prolaser4_'
 local pendingChanges = false
 
 -- local function forward declarations
@@ -9,7 +9,7 @@ local GetTimeString, PadTime, CorrectHour
 
 -- CLEAR SAVED DATA / KVPS
 RegisterCommand('lidarwipe', function(source, args)
-	DeleteResourceKvp(save_prefix .. 'history')
+	DeleteResourceKvp(savePrefix .. 'history')
 end)
 TriggerEvent('chat:addSuggestion', '/lidarwipe', 'Deletes history data.')
 
@@ -18,16 +18,16 @@ TriggerEvent('chat:addSuggestion', '/lidarwipe', 'Deletes history data.')
 CreateThread(function()
 	Wait(1000)
 	-- load save history
-	local history_save_data = GetResourceKvpString(save_prefix..'history')
-	if history_save_data ~= nil then
-		HIST.history = json.decode(history_save_data)
+	local historySaveData = GetResourceKvpString(savePrefix..'history')
+	if historySaveData ~= nil then
+		HIST.history = json.decode(historySaveData)
 	end
 	
 	-- save pending changes to kvp
 	while true do
 		Wait(300000)
 		if pendingChanges then
-			SetResourceKvp(save_prefix .. 'history', json.encode(HIST.history))
+			SetResourceKvp(savePrefix .. 'history', json.encode(HIST.history))
 			pendingChanges = false
 		end
 	end

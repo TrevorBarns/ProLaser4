@@ -1,21 +1,23 @@
 calibrated = not cfg.requireCalibration
 
 local cfg = cfg
+local lidarGunHash = GetHashKey(cfg.lidarGunHash)
 local calibrating = false
 local tempHidden = false
 local shown = false
 local hudMode = false
 local inFirstPersonPed = true
-local aim_down_sights = false
+local fpAimDownSight = false
+local tpAimDownSight = false
 local ped, target, holdingLidarGun
-local target_heading, ped_heading, allowable, towards, diff_heading
+local targetHeading, pedHeading, allowable, towards, diffHeading
 
 local lidarFOV = (cfg.minFOV+cfg.maxFOV)*0.5
-local current_lidarFOV
+local currentLidarFOV
 local cam, weap, zoomvalue
 local rightAxisX, rightAxisY, rotation
 local camInVehicle
-local inVehicleDeltaCamRot, last_z, last_x
+local inVehicleDeltaCamRot
 
 local isHistoryActive = false
 local historyIndex = 0
@@ -53,11 +55,10 @@ end)
 RegisterKeyMapping('lidar', 'Toggle Lidar Display', 'keyboard', cfg.toggleMenu)
 TriggerEvent('chat:addSuggestion', '/lidar', 'Toggle lidar display.')
 
-
 --	MAIN GET VEHICLE TO CLOCKTHREAD
 Citizen.CreateThread(function()
-	Wait(1000)
-	-- Initialize Textures
+	Wait(500)
+	-- initialize textures & replace weapon string name
 	AddTextEntryByHash(GetHashKey("WT_VPISTOL"), "ProLaser 4")
 	RequestStreamedTextureDict("w_pi_vintage_pistol")
 	HUD:SetCalibrationState(calibrated, false)
@@ -69,7 +70,7 @@ Citizen.CreateThread(function()
 	
 	while true do
 		ped = PlayerPedId()
-		holdingLidarGun = GetSelectedPedWeapon(ped) == GetHashKey(cfg.lidarGunHash)
+		holdingLidarGun = GetSelectedPedWeapon(ped) == lidarGunHash
 		isInVehicle = IsPedInAnyVehicle(ped, true)
 		if shown and holdingLidarGun and IsPlayerFreeAiming(PlayerId()) then
 			found, target = GetEntityPlayerIsFreeAimingAt(PlayerId())
@@ -84,13 +85,12 @@ Citizen.CreateThread(function()
 	end
 end)
 
-
-
 -- REMOVE CONTROLS & HUD MESSAGE
 Citizen.CreateThread( function()
 	while true do
 		Citizen.Wait(1)
 		if holdingLidarGun then
+			HideHudComponentThisFrame(2)
 			if not hudMode and IsPlayerFreeAiming(PlayerId()) then
 				DrawSprite("w_pi_vintage_pistol", "lidar_reticle", 0.5, 0.5, 0.005, 0.01, 0.0, 200, 200, 200, 255)
 			end
@@ -100,7 +100,6 @@ Citizen.CreateThread( function()
 			DisableControlAction(0, cfg.nextHistory, true) 
 			DisableControlAction(0, 142, true) 				-- INPUT_MELEE_ATTACK_ALTERNATE
 			DisableControlAction(0, 26, true) 				-- INPUT_LOOK_BEHIND
-			DisableControlAction(0, 177, true)				-- INPUT_AIM
 			-- if aiming down sight disable change weapon to enable scrolling without HUD wheel opening
 			if IsPlayerFreeAiming(PlayerId()) then
 				DisableControlAction(0, 99, true)				-- INPUT_VEH_SELECT_NEXT_WEAPON
@@ -117,7 +116,7 @@ Citizen.CreateThread( function()
 		if holdingLidarGun or hudMode then
 			inFirstPersonPed = not isInVehicle and GetFollowPedCamViewMode() == 4
 			inFirstPersonVeh = isInVehicle and GetFollowVehicleCamViewMode() == 4
-			if not hudMode and aim_down_sights and (inFirstPersonPed or inFirstPersonVeh) then
+			if not hudMode and fpAimDownSight and (inFirstPersonPed or inFirstPersonVeh) then
 				if not shown then
 					shown = true
 					if not calibrated and not calibrating then
@@ -127,7 +126,7 @@ Citizen.CreateThread( function()
 				end
 				hudMode = true
 				HUD:SetDisplayMode('ADS')
-			elseif shown and hudMode and not (aim_down_sights and (inFirstPersonPed or inFirstPersonVeh)) then
+			elseif shown and hudMode and not (fpAimDownSight and (inFirstPersonPed or inFirstPersonVeh)) then
 				hudMode = false
 				HUD:SetDisplayMode('DISPLAY')
 			end
@@ -155,21 +154,45 @@ Citizen.CreateThread( function()
 
 		if holdingLidarGun then
 			-- toggle ADS if first person and aim, otherwise unADS
-			if not aim_down_sights and IsControlJustPressed(0,25) and (inFirstPersonPed or inFirstPersonVeh) then
-				aim_down_sights = true
+			if not fpAimDownSight and IsControlJustPressed(0,25) and (inFirstPersonPed or inFirstPersonVeh) then
+				fpAimDownSight = true
 				SetPlayerForcedAim(PlayerId(), true)
-			elseif aim_down_sights and (IsDisabledControlJustPressed(0,177) or IsControlJustPressed(0,25) or not (inFirstPersonPed or inFirstPersonVeh)) then
-				aim_down_sights = false
+			elseif fpAimDownSight and (IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0) or not (inFirstPersonPed or inFirstPersonVeh)) then
+				fpAimDownSight = false
 				SetPlayerForcedAim(PlayerId(), false)
+				-- Simulate control just released, if still holding right click disable the control till they unclick to prevent retoggling accidently
+				while IsControlJustPressed(0,25) or IsDisabledControlPressed(0,25) or IsControlPressed(0,177) or IsDisabledControlPressed(0,177) do
+					DisableControlAction(0, 25, true)		-- INPUT_AIM
+					DisableControlAction(0, 177, true)		-- INPUT_CELLPHONE_CANCEL
+					DisableControlAction(0, 68, true)		-- INPUT_VEH_AIM
+					Wait(1)
+				end
 				Wait(100)
-			elseif not aim_down_sights and (inFirstPersonPed or inFirstPersonVeh) and IsPlayerFreeAiming(PlayerId()) then
-				aim_down_sights = true
+			elseif not fpAimDownSight and (inFirstPersonPed or inFirstPersonVeh) and IsPlayerFreeAiming(PlayerId()) then
+				fpAimDownSight = true
 				SetPlayerForcedAim(PlayerId(), true)
+			end	
+			
+			-- toggle ADS if in third person and aim, otherwide unaim
+			if not (inFirstPersonPed or inFirstPersonVeh) then
+				if not tpAimDownSight and IsControlJustPressed(0,25) then
+					tpAimDownSight = true
+					SetPlayerForcedAim(PlayerId(), true)
+				elseif tpAimDownSight and (IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0)) then
+					tpAimDownSight = false
+					SetPlayerForcedAim(PlayerId(), false)
+					-- Simulate control just released, if still holding right click disable the control till they unclick to prevent retoggling accidently
+					while IsControlJustPressed(0,25) or IsDisabledControlPressed(0,25) or IsControlPressed(0,177) or IsDisabledControlPressed(0,177) do
+						DisableControlAction(0, 25, true)		-- INPUT_AIM
+						DisableControlAction(0, 177, true)		-- INPUT_CELLPHONE_CANCEL
+						DisableControlAction(0, 68, true)		-- INPUT_VEH_AIM
+						Wait(1)
+					end
+				end
 			end
-
 			--	Get target speed and update display
 			if shown and not tempHidden and calibrated then
-				if IsDisabledControlPressed(1, cfg.trigger) and not isHistoryActive and IsPlayerFreeAiming(PlayerId())  then 
+				if IsDisabledControlPressed(1, cfg.trigger) and not isHistoryActive and IsPlayerFreeAiming(PlayerId()) and not (tpAimDownSight and (GetGameplayCamRelativeHeading() < -131 or GetGameplayCamRelativeHeading() > 178)) then 
 					allowable, towards = GetLidarHeadingInfo(target, ped)
 					if allowable or not cfg.accurateAngle then
 						speed = math.floor(GetEntitySpeed(target)*2.236936) -- m/s to mph
@@ -208,7 +231,7 @@ Citizen.CreateThread( function()
 						HUD:SetHistoryData(historyIndex, HIST.history[historyIndex])
 						Wait(scrollWait)
 					end
-				elseif IsDisabledControlJustReleased(0, cfg.changeSight) and aim_down_sights then
+				elseif IsDisabledControlJustReleased(0, cfg.changeSight) and fpAimDownSight then
 					HUD:ChangeSightStyle()
 				end
 				--[[
@@ -371,7 +394,7 @@ end)]]
 CreateThread(function()
 	while true do
 		if holdingLidarGun then
-			if aim_down_sights then
+			if fpAimDownSight then
 				cam = CreateCam("DEFAULT_SCRIPTED_FLY_CAMERA", true)
 				weap = GetCurrentPedWeaponEntityIndex(ped)
 				if isInVehicle then
@@ -389,9 +412,9 @@ CreateThread(function()
 					cfg.displayControls = false
 				end
 
-				while aim_down_sights and not IsEntityDead(ped) do	
+				while fpAimDownSight and not IsEntityDead(ped) do	
 					if ((camInVehicle and not isInVehicle) or (not camInVehicle and isInVehicle)) or not holdingLidarGun then
-						aim_down_sights = false
+						fpAimDownSight = false
 						SetPlayerForcedAim(PlayerId(), false)
 						delayEntry = true
 						break
@@ -416,21 +439,21 @@ end)
 --FUNCTIONS--
 --	HEADING LIMIT VALIDATION AND TOWARDS/AWAY INFO
 GetLidarHeadingInfo = function(target, ped)
-	target_heading = GetEntityHeading(target)
-	if isInVehicle then
-		ped_heading = GetCamRot(cam, 2)[3]
+	targetHeading = GetEntityHeading(target)
+	if isInVehicle and fpAimDownSight then
+		pedHeading = GetCamRot(cam, 2)[3]
 	else
-		ped_heading = GetEntityHeading(ped) + GetGameplayCamRelativeHeading()
+		pedHeading = GetEntityHeading(ped) + GetGameplayCamRelativeHeading()
 	end
 	allowable = true
 	towards = false
 	
-	diff_heading = math.abs((ped_heading - target_heading + 180) % 360 - 180)
-	if ( diff_heading > cfg.maxAngle and diff_heading < (180 - cfg.maxAngle) ) then
+	diffHeading = math.abs((pedHeading - targetHeading + 180) % 360 - 180)
+	if ( diffHeading > cfg.maxAngle and diffHeading < (180 - cfg.maxAngle) ) then
 		allowable =  false
 	end
 	
-	if ( diff_heading > 135 ) then
+	if ( diffHeading > 135 ) then
 		towards = true
 	end
 	return allowable, towards
@@ -443,29 +466,29 @@ CheckInputRotation = function(cam, zoomvalue)
 	rotation = GetCamRot(cam, 2)
 	if rightAxisX ~= 0.0 or rightAxisY ~= 0.0 then
 		if isInVehicle then
-			new_z = rotation.z + rightAxisX*-1.0*(cfg.verticalPanSpeed-zoomvalue*8) 
-			new_x = math.max(math.min(20.0, rotation.x + rightAxisY*-1.0*(cfg.horizontalPanSpeed-zoomvalue*8)), -20.0) -- Clamping at top (cant see top of heli) and at bottom (doesn't glitch out in -90deg)
-			SetCamRot(cam, new_x, 0.0, new_z, 2)
+			newZ = rotation.z + rightAxisX*-1.0*(cfg.verticalPanSpeed-zoomvalue*8) 
+			newX = math.max(math.min(20.0, rotation.x + rightAxisY*-1.0*(cfg.horizontalPanSpeed-zoomvalue*8)), -20.0) -- Clamping at top (cant see top of heli) and at bottom (doesn't glitch out in -90deg)
+			SetCamRot(cam, newX, 0.0, newZ, 2)
 			SetGameplayCamRelativeRotation(0.0, 0.0, 0.0)
 			-- limit ADS rotation while in vehicle
 			inVehicleDeltaCamRot = (GetCamRot(cam, 2)[3] - GetEntityHeading(ped) + 180) % 360 - 180
 			while inVehicleDeltaCamRot < -75 and inVehicleDeltaCamRot > -130 do
-				new_z = new_z + 0.2
-				SetCamRot(cam, new_x, 0.0, new_z, 2)
+				newZ = newZ + 0.2
+				SetCamRot(cam, newX, 0.0, newZ, 2)
 				inVehicleDeltaCamRot = (GetCamRot(cam, 2)[3] - GetEntityHeading(ped) + 180) % 360 - 180
 				Wait(1)
 			end			
 			while inVehicleDeltaCamRot > 178 or (inVehicleDeltaCamRot > -180 and inVehicleDeltaCamRot < -130) do
-				new_z = new_z - 0.2
-				SetCamRot(cam, new_x, 0.0, new_z, 2)
+				newZ = newZ - 0.2
+				SetCamRot(cam, newX, 0.0, newZ, 2)
 				inVehicleDeltaCamRot = (GetCamRot(cam, 2)[3] - GetEntityHeading(ped) + 180) % 360 - 180
 				Wait(1)
 			end
 		else
-			new_z = rotation.z + rightAxisX*-1.0*(cfg.verticalPanSpeed-zoomvalue*8)
-			new_x = math.max(math.min(40.0, rotation.x + rightAxisY*-1.0*(cfg.horizontalPanSpeed-zoomvalue*8)), -89.5) -- Clamping at top (cant see top of heli) and at bottom (doesn't glitch out in -90deg)
-			SetCamRot(cam, new_x, 0.0, new_z, 2)
-			SetGameplayCamRelativeRotation(0.0, new_x, new_z)
+			newZ = rotation.z + rightAxisX*-1.0*(cfg.verticalPanSpeed-zoomvalue*8)
+			newX = math.max(math.min(40.0, rotation.x + rightAxisY*-1.0*(cfg.horizontalPanSpeed-zoomvalue*8)), -89.5) -- Clamping at top (cant see top of heli) and at bottom (doesn't glitch out in -90deg)
+			SetCamRot(cam, newX, 0.0, newZ, 2)
+			SetGameplayCamRelativeRotation(0.0, newX, newZ)
 		end
 	end
 end
@@ -478,11 +501,11 @@ HandleZoom = function(cam)
 	if  IsDisabledControlPressed(0,334) or IsDisabledControlPressed(0, 16) then
 		lidarFOV = math.min(lidarFOV + cfg.zoomSpeed/6, cfg.minFOV) -- ScrollDown
 	end
-	current_lidarFOV = GetCamFov(cam)
-	if math.abs(lidarFOV-current_lidarFOV) < 0.1 then -- the difference is too small, just set the value directly to avoid unneeded updates to FOV of order 10^-5
-		lidarFOV = current_lidarFOV
+	currentLidarFOV = GetCamFov(cam)
+	if math.abs(lidarFOV-currentLidarFOV) < 0.1 then -- the difference is too small, just set the value directly to avoid unneeded updates to FOV of order 10^-5
+		lidarFOV = currentLidarFOV
 	end
-	SetCamFov(cam, current_lidarFOV + (lidarFOV - current_lidarFOV)*0.03) -- Smoothing of camera zoom
+	SetCamFov(cam, currentLidarFOV + (lidarFOV - currentLidarFOV)*0.03) -- Smoothing of camera zoom
 end
 
 --	Play NUI front in audio.

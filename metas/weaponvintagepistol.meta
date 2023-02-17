@@ -54,9 +54,9 @@
           <FireType>INSTANT_HIT</FireType>
           <WheelSlot>WHEEL_PISTOL</WheelSlot>
           <Group>GROUP_PISTOL</Group>
-          <AmmoInfo ref="AMMO_PISTOL" />
+          <AmmoInfo ref="NULL" />
           <AimingInfo ref="PISTOL_2H_BASE_STRAFE" />
-          <ClipSize value="7" />
+          <ClipSize value="0" />
           <AccuracySpread value="1.500000" />
           <AccurateModeAccuracyModifier value="0.500000" />
           <RunAndGunAccuracyModifier value="2.000000" />
@@ -311,11 +311,11 @@
           </AttachPoints>
           <GunFeedBone />
           <TargetSequenceGroup>Pistol</TargetSequenceGroup>
-          <WeaponFlags>CarriedInHand Gun CanLockonOnFoot CanLockonInVehicle CanFreeAim AnimReload AnimCrouchFire UsableOnFoot UsableClimbing UsableInCover AllowCloseQuarterKills HasLowCoverReloads HasLowCoverSwaps QuitTransitionToIdleIntroOnWeaponChange DisableLeftHandIkWhenOnFoot TorsoIKForWeaponBlock UseFPSAimIK UseFPSSecondaryMotion NonViolent</WeaponFlags>
+          <WeaponFlags>CarriedInHand Gun CanLockonOnFoot CanLockonInVehicle CanFreeAim AnimReload AnimCrouchFire UsableOnFoot UsableClimbing UsableInCover AllowCloseQuarterKills HasLowCoverReloads HasLowCoverSwaps QuitTransitionToIdleIntroOnWeaponChange DisableLeftHandIkWhenOnFoot TorsoIKForWeaponBlock UseFPSAimIK UseFPSSecondaryMotion NonViolent NoWheelStats</WeaponFlags>
           <TintSpecValues ref="TINT_DEFAULT" />
           <FiringPatternAliases ref="FIRING_PATTERN_PISTOL" />
           <ReloadUpperBodyFixupExpressionData ref="DEFAULT" />
-          <AmmoDiminishingRate value="3" />
+          <AmmoDiminishingRate value="0" />
           <AimingBreathingAdditiveWeight value="1.000000" />
           <FiringBreathingAdditiveWeight value="1.000000" />
           <StealthAimingBreathingAdditiveWeight value="1.000000" />
