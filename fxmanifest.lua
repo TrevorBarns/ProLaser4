@@ -1,7 +1,9 @@
 ------------------------------
 fx_version 'adamant'
 games { 'gta5' }
+lua54 'on'
 
+author 'Trevor Barns'
 description 'Lidar Resource.'
 ------------------------------
 ui_page('html/index.html')
@@ -13,11 +15,17 @@ files {
 	'html/**.png',
 	'html/lidar.js',
 	'html/style.css',
-	'html/sounds/LidarCalibration.ogg',
-	'html/sounds/LidarPress.ogg',
+	'html/sounds/*.ogg',
+	'metas/*.meta',
 }
 
 client_scripts{
 	'config.lua',
 	'UTIL/cl_*.lua',
 }
+
+escrow_ignore {
+	'config.lua',
+}
+
+

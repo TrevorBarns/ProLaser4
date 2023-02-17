@@ -11,6 +11,10 @@
     src: url('./fonts/SmallLcdSignRegular-eLvm.ttf');
 }
 
+p {
+	text-shadow: 0 0 12px #1bff00ab, 0 0 44px #10ff00;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -19,37 +23,22 @@ body {
     width: 100%;
 }
 
-#calibration {
-	position: absolute;
-    font-family: "EnvyCodeR";
-    font-weight: bolder;
-    font-size: 30px;
-    color: #4fdb21;
-    left: 25%;
-    top: 27%;
-	text-align: center;
-}
-
-#calibrationprogress {
-	position: absolute;
-    font-family: "EnvyCodeR";
-    font-weight: bolder;
-    color: #4fdb21;
-    top: 38%;
-    left: 29%;
-    font-size: 24px;
-	text-align: center;
-}
-
-#calibrationtimer {
-    top: 46%;
-    left: 45%;
-    font-size: 22px;
+#calibration-container {
+	display: block;
     position: absolute;
-    font-family: "EnvyCodeR";
+    top: 34%;
+    left: 18%;
+    width: 64%;
+    height: 26%;
+}
+
+#calibration-container > p {
+	font-family: "EnvyCodeR";
     font-weight: bolder;
-    color: rgb(79, 219, 33);
+    color: #b6ff9e;
     text-align: center;
+	font-size: 24px;
+	margin: 0;
 }
 
 #hud {
@@ -108,10 +97,14 @@ body {
     height: 27%;
 }
 
+#left > p {
+	text-shadow: rgb(27 255 0 / 78%) 0px 0px 12px, rgb(16 255 0 / 50%) 0px 0px 44px;
+}
+
 #unit {
 	position: relative;
     font-size: 36px;
-    color: #4fdb21;
+    color: #b6ff9e;
     font-family: 'ENVYCODER';
     grid-row: 2;
     grid-column: 2;
@@ -123,7 +116,7 @@ body {
     font-family: 'ENVYCODER';
     font-weight: bolder;
     font-size: 64px;
-    color: #4fdb21;
+    color: #b6ff9e;
     text-align: right;
     grid-column: 2;
     grid-row: 1;
@@ -131,7 +124,7 @@ body {
 }
 
 #right {
-display: grid;
+	display: grid;
     grid-column: 1/2;
     grid-row: 1/2;
     position: absolute;
@@ -142,11 +135,15 @@ display: grid;
     height: 26%;
 }
 
+#right > p {
+    text-shadow: rgb(27 255 0 / 78%) 0px 0px 12px, rgb(16 255 0 / 50%) 0px 0px 44px;
+}
+
 #range {
     font-family: "EnvyCodeR";
     font-weight: bolder;
     font-size: 30px;
-    color: #4fdb21;
+    color: #b6ff9e;
     margin: 4px 0px -26px 0px;
     grid-column: 1;
     grid-row: 1;
@@ -155,7 +152,7 @@ display: grid;
 #timer {
     top: 29%;
     font-size: 21px;
-    color: #4fdb21;
+    color: #b6ff9e;
     font-family: 'ENVYCODER';
     margin: -13px 0px 0px 13px;
     grid-row: 2;
@@ -166,7 +163,7 @@ display: grid;
     top: 27%;
     width: 0.5%;
     height: 23%;
-    background-color: #4fdb21;
+    background-color: #b6ff9e;
     padding: 0px;
 	position: absolute;
     margin: 32px 0px 0px 0px;
@@ -177,12 +174,90 @@ display: grid;
 	position: absolute;
     height: 389px;
     width: 634px;
-    left: 70%;
     bottom: 2%;
 	margin-bottom: 0%;
     background: url("textures/lidar.png");
 	background-size: contain;
-    transform: scale(0.75);
+    transform: scale(0.65);
     transform-origin: bottom;
     left: 60%;
+}
+
+#top-container {
+	display: block;
+    position: absolute;
+    width: 42%;
+    height: 14%;
+    left: 29%;
+    top: 14.3%;
+}
+
+#top-container > button {
+    width: 20%;
+    height: 100%;
+    background: unset;
+	cursor: pointer;
+}
+
+#bottom-container {
+	display: block;
+    position: absolute;
+    width: 69%;
+    height: 16%;
+    left: 16.8%;
+    top: 66%;
+}
+
+#bottom-container > button {
+    width: 20%;
+    height: 100%;
+    background: unset;
+	cursor: pointer;
+	margin-right: 1.4vh;
+}
+
+#history-container {
+	display: block;
+    position: absolute;
+    top: 34%;
+    left: 18%;
+    width: 64%;
+    height: 26%;
+}
+
+#history-container > p {
+	font-family: "EnvyCodeR";
+	font-weight: bolder;
+	font-size: 1.3em;
+	margin: 0;
+	color: #b6ff9e;
+	text-align: left;
+	line-height: unset;
+}
+
+#fast-container{
+	position: absolute;
+    top: 34%;
+    left: 18%;
+    width: 64%;
+    height: 26%;
+}
+
+#fast-container > p {
+    font-family: "EnvyCodeR";
+    font-weight: bolder;
+    font-size: 2.7vh;
+    color: #b6ff9e;
+    text-align: center;
+	margin: 0;
+}
+
+.blink{
+	animation: blinker 1s steps(1, jump-start) infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
 }

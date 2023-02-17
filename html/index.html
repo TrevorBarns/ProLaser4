@@ -10,23 +10,37 @@
 	<p id='speedhud'>TESTING</p>
 </div>
 <div id="lasergun">
-    <p id="calibration">SELF TEST IN PROCESS</p>
-    <p id="calibrationprogress">[___________________]</p>
-    <p id="calibrationtimer">00:00</p>
-	<img src="textures/screen.png" style="position: absolute; top: 34%; right: 18%; width: 408px; height: 103px; transform-origin: center; offset-anchor: center; z-index: 2; opacity: 0.11;">
-	<img src="textures/grid.png" style="position: absolute; top: 32%; right: 17%; width: 403px; height: 103px; offset-anchor: center; z-index: 1; opacity: 0.7; margin: 6px;">
-	<div id="left">
-	    <img id="arrowup" src="textures/arrow.png" style="width: 23px; float: right; grid-row: 1; grid-column: 1; margin: 14px 0px 0px 0px;">
-        <img id="arrowdown" src="textures/arrow.png" style="width: 23px; float: right; grid-row: 1; grid-column: 1; margin: 39px 0px 0px 0px; transform: rotate(180deg);">
-	    <p id="speed">---</p>
-	    <p id="unit">mph</p>
+	<img src="textures/screen.png" style="position: absolute; top: 34%; right: 18%; width: 408px; height: 103px; transform-origin: center; offset-anchor: center; z-index: 2; opacity: 0.15;">
+	<img src="textures/grid.png" style="position: absolute; top: 32%; right: 17%; width: 403px; height: 103px; offset-anchor: center; z-index: 1; opacity: 0.5; margin: 6px;">
+	<div id="calibration-container">
+		<p id="calibration" style="font-size: 30px;">SELF TEST IN PROGRESS</p>
+		<p id="calibrationprogress" style="line-height: 1.5;">[___________________]</p>
+		<p id="calibrationtimer">00:00</p>
 	</div>
-    <div id="verticaldiv"></div>
-	<div id="right">
-	    <p id="range">----ft</p>
-	    <p id="timer"></p>
-		<img id="lock" src="textures/lock.png" style="width: 19px; float: right; grid-row: 1; position: absolute; bottom: 24%; right: 6%;">
-		<img id="battery" src="textures/battery.png" style="width: 33px; float: right; bottom: 6%; right: 2%; position: absolute; margin: 0px;">
+	<div id="lidar-home" style="display: none;">
+		<div id="left">
+			<img id="arrowup" src="textures/arrow.png" style="width: 47px; grid-area: 1 / 1 / auto / auto; margin: 0px -6px;">
+			<img id="arrowdown" src="textures/arrow.png" style="width: 47px; grid-area: 1 / 1 / auto / auto; margin: 24px -10px -15px; transform: rotate(180deg);">
+			<p id="speed">---</p>
+			<p id="unit">mph</p>
+		</div>
+		<div id="verticaldiv"></div>
+		<div id="right">
+			<p id="range">----ft</p>
+			<p id="timer"></p>
+			<img id="lock" src="textures/lock.png" style="width: 135px; float: right; grid-row: 1 / auto; position: absolute; bottom: -28%; right: -16%;">
+			<img id="battery" src="textures/battery4.png" style="width: 163px; float: right; bottom: -71%; right: -23%; position: absolute; margin: 0px;">
+		</div>
+	</div>	
+	<div id="history-container">
+		<p id="counter" style="text-align: center; width: 20%; margin-top: 2%";></p>
+		<p id="history-header" style="font-size: 1.9em; text-align: center; margin-top: -7.3%;">Recalled Events</p>
+		<p id="timestamp" style="line-height: 1.7; margin-left: 3%;"></p>
+		<p id="clock" style="line-height: 1; margin-left: 3%;"></p>
+	</div>
+	<div id="fast-container">
+		<p id="fast-header" style="font-size: 3vh;">Alert Speed</p>
+		<p id="fast-alert"></p>
 	</div>
 </div>
 <script src="jquery.js" type="text/javascript"></script>

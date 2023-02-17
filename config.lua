@@ -1,12 +1,16 @@
 cfg = {}
 
 --[[CONTROLS]]
-cfg.toggleMenu = 246
---	Open / Close UI (default: Y)
+cfg.toggleMenu = 'I'
+--	Open / Close UI (default: I)
 cfg.trigger = 24 		
 --	Check Vehicle Speed / Pull Trigger (default: RTrigger / LMouse)
 cfg.changeSight = 26
 --	Changes ADS style between sniper scope and modeled ProLaser 4 sight (default: C)
+cfg.nextHistory = 175
+--	Scorols next in history menu, opens if not open.
+cfg.previousHistory = 174
+--	Scrolls previous in history menu, closes if on first history item.
 
 cfg.requireCalibration = false
 --	Require players to calibrate or override calibration message.

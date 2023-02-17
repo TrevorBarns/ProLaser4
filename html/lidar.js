@@ -1,4 +1,5 @@
 var audioPlayer = null;
+var loopedAudioPlayer = null;
 var soundID = 0;
 var start;
 var timerHandle;
@@ -8,10 +9,14 @@ var calibrationVolume = 0.02;
 const context = new AudioContext();
 var clockTone = createClockTone( context )
 var clockToneMute;
+var speedAlert = false;
 
 $(document).ready(function(){
 	$('#hud').hide();
 	$('#lasergun').hide();
+	$('#history-container').hide();
+	$('#fast-container').hide();
+
     window.addEventListener('message', function(event) {
         if (event.data.action == 'SetLidarDisplayState') {
             $('#lasergun').show();
@@ -26,17 +31,27 @@ $(document).ready(function(){
 			$('#rangehud').text(event.data.range+'ft');
 			$('#timer').text('');
 			$('#lock').hide();
+			$('#arrowup').hide();
+			$('#arrowdown').hide();
 			clearInterval(timerHandle);
 			if (event.data.towards == true){
 				$('#speedhud').text('- '+event.data.speed);
+				$('#arrowup').hide();
+				$('#arrowdown').show();
 				timer();
 				clearInterval(clockToneMute);
-				playClockTone();
+				if (!speedAlert){
+					playClockTone();
+				}
 			} else if (event.data.towards == false){
 				$('#speedhud').text('+ '+event.data.speed);
+				$('#arrowdown').hide();
+				$('#arrowup').show();
 				timer();
 				clearInterval(clockToneMute);
-				playClockTone();
+				if (!speedAlert){
+					playClockTone();
+				}
 			} else{
 				$('#speedhud').text('/ '+event.data.speed);
 				clearInterval(clockToneMute);
@@ -52,22 +67,15 @@ $(document).ready(function(){
 			}
  		} else if (event.data.action == 'SendCalibrationState') {
 			if (event.data.state) {
-				$('#left').show();
-				$('#right').show();
-				$('#verticaldiv').show();
-				$('#timer').text('');
-				$('#calibration').hide();
-				$('#calibrationprogress').hide();
-				$('#calibrationtimer').hide();
-				playSound('LidarCalibration')
+				$('#lidar-home').show();
+				$('#calibration-container').hide();
+				if (event.data.sound) {
+					playSound('LidarCalibration')
+				}
 				clearInterval(timerHandle);
 			} else{
-				$('#left').hide();
-				$('#right').hide();
-				$('#verticaldiv').hide();
-				$('#calibration').show();
-				$('#calibrationprogress').show();
-				$('#calibrationtimer').show();
+				$('#lidar-home').hide();
+				$('#calibration-container').show();
 				clearInterval(timerHandle);
 				timer();
 			}	
@@ -83,7 +91,42 @@ $(document).ready(function(){
  		} else if (event.data.action == 'SetConfigVars') {
 			calibrationVolume = event.data.calibrationSFX
 			clockVolume = event.data.clockSFX
-			console.log(clockVolume)
+		} else if (event.data.action == 'SetHistoryState') {
+			// if (!$('#fast-container').is(":visible")) {
+				if (event.data.state){
+					$('#lidar-home').hide();
+					$('#history-container').show();
+				} else {
+					$('#lidar-home').show();
+					$('#history-container').hide();
+				}
+			// }
+		} else if (event.data.action == 'SendHistoryData') {
+			$('#counter').text(event.data.counter);
+			$('#timestamp').text("Date Time: " + event.data.time);
+			$('#clock').text("Speed Range: " + event.data.clock);
+		} else if (event.data.action == 'PlayButtonPressBeep') {
+			playSound(event.data.file);
+		/*
+		} else if (event.data.action == 'SetFastSpeedState') {
+			if (event.data.state){
+				$('#fast-container').show();
+				$('#lidar-home').hide();
+			} else {
+				$('#fast-container').hide();
+				$('#lidar-home').show();
+			}
+		} else if (event.data.action == 'SendFastLimit') {
+			$('#fast-alert').text(event.data.speed + ' mph');
+		 } else if (event.data.action == 'PlayFastAlertBeep') {
+			if (!speedAlert){
+				playSound(event.data.file);
+			}
+			speedAlert = true;
+			setTimeout(function() {speedAlert = false}, 2000);
+		*/
+		} else if (event.data.action == 'SendBatteryAmount') {
+			$('#battery').attr('src', 'textures/battery' + event.data.bars + '.png');
 		}
     });
 });
