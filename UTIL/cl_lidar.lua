@@ -447,6 +447,7 @@ CheckInputRotation = function(cam, zoomvalue)
 			new_x = math.max(math.min(20.0, rotation.x + rightAxisY*-1.0*(cfg.horizontalPanSpeed-zoomvalue*8)), -20.0) -- Clamping at top (cant see top of heli) and at bottom (doesn't glitch out in -90deg)
 			SetCamRot(cam, new_x, 0.0, new_z, 2)
 			SetGameplayCamRelativeRotation(0.0, 0.0, 0.0)
+			-- limit ADS rotation while in vehicle
 			inVehicleDeltaCamRot = (GetCamRot(cam, 2)[3] - GetEntityHeading(ped) + 180) % 360 - 180
 			while inVehicleDeltaCamRot < -75 and inVehicleDeltaCamRot > -130 do
 				new_z = new_z + 0.2

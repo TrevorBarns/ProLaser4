@@ -48,9 +48,8 @@ function HIST:StoreLidarData(target, speed, range, towards)
 		-- if new record is of higher speed, update to the new speed
 		if self.history[1].speed < speed then
 			self.history[1].clock = clockString
-			self.history[1].clock = clockString
+			self.history[1].time = GetTimeString()
 		end
-		self.history[1].time = GetTimeString()
 		return
 	end
 	
