@@ -12,7 +12,7 @@ cfg.nextHistory = 175
 cfg.previousHistory = 174
 --	Scrolls previous in history menu, closes if on first history item.
 
-cfg.requireCalibration = false
+cfg.requireCalibration = true
 --	Require players to calibrate or override calibration message.
 cfg.lidarGunHash = "WEAPON_VINTAGEPISTOL"
 --	Lidar gun weapon string
