@@ -91,8 +91,8 @@ Citizen.CreateThread( function()
 	while true do
 		Citizen.Wait(1)
 		if holdingLidarGun then
-			if not hudMode and IsPlayerFreeAiming() then
-				DrawSprite("w_pi_vintage_pistol", "lidar_reticle", 0.5, 0.5, 0.0030, 0.006, 0.0, 200, 200, 200, 255)
+			if not hudMode and IsPlayerFreeAiming(PlayerId()) then
+				DrawSprite("w_pi_vintage_pistol", "lidar_reticle", 0.5, 0.5, 0.005, 0.01, 0.0, 200, 200, 200, 255)
 			end
 			DisablePlayerFiring(ped, true ) 				-- Disable Weapon Firing
 			DisableControlAction(0, cfg.trigger, true) 		-- Disable Trigger Action
@@ -102,7 +102,7 @@ Citizen.CreateThread( function()
 			DisableControlAction(0, 26, true) 				-- INPUT_LOOK_BEHIND
 			DisableControlAction(0, 177, true)				-- INPUT_AIM
 			-- if aiming down sight disable change weapon to enable scrolling without HUD wheel opening
-			if IsPlayerFreeAiming() or (isInVehicle and hudMode) then
+			if IsPlayerFreeAiming(PlayerId()) then
 				DisableControlAction(0, 99, true)				-- INPUT_VEH_SELECT_NEXT_WEAPON
 				DisableControlAction(0, 16, true)				-- INPUT_SELECT_NEXT_WEAPON
 				DisableControlAction(0, 17, true)				-- INPUT_SELECT_PREV_WEAPON
