@@ -1,6 +1,4 @@
 #  ProLaser4
-### Documentation and About: [Welcome to Luxart Engineering - Gitbook](https://www.luxartengineering.com/)
-
 ### Support, Suggestions, and Updates: [TrevorBarns Development Discord](https://discord.com/invite/PXYQ4T8wB9)
 <a href="https://discord.link/lvc"><img target="_blank" src="https://discordapp.com/api/guilds/344333824911605762/widget.png?style=banner3"></a>
 
