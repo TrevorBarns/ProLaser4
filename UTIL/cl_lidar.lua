@@ -55,6 +55,16 @@ end)
 RegisterKeyMapping('lidar', 'Toggle Lidar Display', 'keyboard', cfg.toggleMenu)
 TriggerEvent('chat:addSuggestion', '/lidar', 'Toggle lidar display.')
 
+--	TOGGLE LIDAR WEAPON COMMAND
+RegisterCommand('lidarweapon', function(source, args)
+	if HasPedGotWeapon(ped, lidarGunHash) then
+		RemoveWeaponFromPed(ped, lidarGunHash)
+	else
+		GiveWeaponToPed(ped, lidarGunHash, 0, false, false)
+	end
+end)
+TriggerEvent('chat:addSuggestion', '/lidarweapon', 'Equip / Remove lidar weapon.')
+
 --	MAIN GET VEHICLE TO CLOCKTHREAD
 Citizen.CreateThread(function()
 	Wait(500)
@@ -99,12 +109,14 @@ Citizen.CreateThread( function()
 			DisableControlAction(0, cfg.previousHistory, true) 
 			DisableControlAction(0, cfg.nextHistory, true) 
 			DisableControlAction(0, 142, true) 				-- INPUT_MELEE_ATTACK_ALTERNATE
-			DisableControlAction(0, 26, true) 				-- INPUT_LOOK_BEHIND
 			-- if aiming down sight disable change weapon to enable scrolling without HUD wheel opening
 			if IsPlayerFreeAiming(PlayerId()) then
 				DisableControlAction(0, 99, true)				-- INPUT_VEH_SELECT_NEXT_WEAPON
 				DisableControlAction(0, 16, true)				-- INPUT_SELECT_NEXT_WEAPON
 				DisableControlAction(0, 17, true)				-- INPUT_SELECT_PREV_WEAPON
+			end
+			if hudMode then
+				DisableControlAction(0, 26, true) 				-- INPUT_LOOK_BEHIND
 			end
 		end
 	end
