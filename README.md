@@ -1,3 +1,7 @@
+<p align="center">
+<img align="center" width="600" src="https://i.imgur.com/ioOIzAK.png">
+</p>
+
 #  Pro Laser 4
 ### Support, Suggestions, and Updates: [TrevorBarns Development Discord](https://discord.com/invite/PXYQ4T8wB9)
 <a href="https://discord.link/lvc"><img target="_blank" src="https://discordapp.com/api/guilds/344333824911605762/widget.png?style=banner3"></a>
