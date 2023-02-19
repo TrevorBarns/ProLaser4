@@ -1,4 +1,5 @@
 cfg = {}
+-- DO NOT TOUCH cfg = {}
 
 --[[CONTROLS]]
 cfg.toggleMenu = 'I'
