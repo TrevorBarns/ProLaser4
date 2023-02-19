@@ -115,9 +115,6 @@ Citizen.CreateThread( function()
 				DisableControlAction(0, 16, true)				-- INPUT_SELECT_NEXT_WEAPON
 				DisableControlAction(0, 17, true)				-- INPUT_SELECT_PREV_WEAPON
 			end
-			if hudMode then
-				DisableControlAction(0, 26, true) 				-- INPUT_LOOK_BEHIND
-			end
 		end
 	end
 end)
