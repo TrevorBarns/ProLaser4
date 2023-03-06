@@ -1,19 +1,55 @@
+local SPEED_LIMITS_RAW = LoadResourceFile(GetCurrentResourceName(), "/speedlimits.json")
+local speedLimits = json.decode(SPEED_LIMITS_RAW)
+
 HIST = { }
 HIST.history = { }
+HIST.loggedHistory = { }
 
+local cfg = cfg
 local savePrefix = 'prolaser4_'
 local pendingChanges = false
+local selfTestTimestamp = nil
+local waitingForServer = false
 
 -- local function forward declarations
 local GetTimeString, PadTime, CorrectHour
-
+--	[[COMMANDS]]
 -- CLEAR SAVED DATA / KVPS
 RegisterCommand('lidarwipe', function(source, args)
+	SetResourceKvp(savePrefix .. 'history', json.encode(HIST.history))
 	DeleteResourceKvp(savePrefix .. 'history')
+	SetResourceKvp(savePrefix .. 'history', json.encode(HIST.history))
 end)
 TriggerEvent('chat:addSuggestion', '/lidarwipe', 'Deletes history data.')
 
+-- MANUAL SAVE COMMAND
+RegisterCommand('lidarupload', function(source, args)
+	TriggerServerEvent('prolaser4:SendLogData', HIST.loggedHistory)
+	HIST.loggedHistory = { }
+end)
+TriggerEvent('chat:addSuggestion', '/lidarupload', 'Manually upload lidar event data to server.')
 
+--	RECORDS INTERFACE
+RegisterCommand('lidarrecords', function(source, args)
+	waitingForServer = true
+	TriggerServerEvent('prolaser4:GetLogData')
+	Wait(5000)
+	if waitingForServer then
+		HUD:ShowNotification("~r~Error~s~: Database timed out, check server console.")
+		TriggerServerEvent('prolaser4:DatabaseTimeout')
+	end
+end)
+TriggerEvent('chat:addSuggestion', '/lidarrecords', 'Review lidar records.')
+
+--	[[EVENTS]]
+RegisterNetEvent("prolaser4:ReturnLogData")
+AddEventHandler("prolaser4:ReturnLogData", function(databaseData)
+	waitingForServer = false
+	HUD:SendDatabaseRecords(databaseData)
+	HUD:SetTabletState(true)
+end)
+
+--	[[THREADS]]
 --	SAVE/LOAD HISTORY THREAD: saves history if it's been changed every 5 minutes.
 CreateThread(function()
 	Wait(1000)
@@ -25,14 +61,20 @@ CreateThread(function()
 	
 	-- save pending changes to kvp
 	while true do
-		Wait(300000)
+		Wait(60000)
 		if pendingChanges then
 			SetResourceKvp(savePrefix .. 'history', json.encode(HIST.history))
+			
+			if cfg.logging and #HIST.loggedHistory > 0 then
+				TriggerServerEvent('prolaser4:SendLogData', HIST.loggedHistory)
+				HIST.loggedHistory = { }
+			end
 			pendingChanges = false
 		end
 	end
 end)
 
+--	[[FUNCTION]]
 --	STORE LAST 100 CLOCKS IN DATA TABLE TO SEND TO NUI FOR DISPLAY
 function HIST:StoreLidarData(target, speed, range, towards)
 	-- format clock data
@@ -52,7 +94,6 @@ function HIST:StoreLidarData(target, speed, range, towards)
 		end
 		return
 	end
-	
 	-- different vehicle, store data in table and add
 	local data = { 	target = target, 
 					speed = speed,
@@ -64,7 +105,40 @@ function HIST:StoreLidarData(target, speed, range, towards)
 		table.remove(self.history, 100)
 	end
 	table.insert(self.history, 1, data)
+	
+	-- logging data
+	if cfg.logging then
+		local loggedData = { }
+		if not cfg.loggingPlayersOnly or IsPedAPlayer(GetPedInVehicleSeat(veh, -1)) then
+			loggedData['speed'] = speed
+			loggedData['range'] = string.format("%03.1f", range)
+			loggedData['time'] = GetTimeString()
+			local targetPos = GetEntityCoords(target)
+			loggedData['targetX'] = targetPos.x
+			loggedData['targetY'] = targetPos.y
+			loggedData['selfTestTimestamp'] = selfTestTimestamp
+
+			local streetHash1, streetHash2 = GetStreetNameAtCoord(targetPos.x, targetPos.y, targetPos.z, Citizen.ResultAsInteger(), Citizen.ResultAsInteger())
+			local streetName1 = GetStreetNameFromHashKey(streetHash1)
+			local streetName2 = GetStreetNameFromHashKey(streetHash2)
+			
+			if not cfg.loggingSpeedersOnly or speed > speedLimits[streetName1] then
+				if streetName2 == "" then
+					loggedData['street'] = streetName1
+				else
+					loggedData['street'] = string.format("%s / %s", streetName1, streetName2)
+				end
+				table.insert(self.loggedHistory, loggedData)
+			end
+		end
+	end
 	pendingChanges = true
+end
+
+-- [[ GLOBAL FUNCTIONS ]]
+--	HUD->HIST store self-test datetime for SQL
+function HIST:SetSelfTestTimestamp()
+	selfTestTimestamp = GetTimeString()
 end
 
 -- [[ LOCAL FUNCTIONS ]]

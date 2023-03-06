@@ -1,16 +1,23 @@
-calibrated = not cfg.requireCalibration
+selfTestState = not cfg.performSelfTest
+
+holdingLidarGun = false
+local beingShownLidarGun = false
 
 local cfg = cfg
 local lidarGunHash = GetHashKey(cfg.lidarGunHash)
-local calibrating = false
+local selfTestInProgress = false
 local tempHidden = false
 local shown = false
 local hudMode = false
+local isAiming = false
 local inFirstPersonPed = true
 local fpAimDownSight = false
 local tpAimDownSight = false
-local ped, target, holdingLidarGun
-local targetHeading, pedHeading, allowable, towards, diffHeading
+local ped, target
+local targetHeading, pedHeading, towards
+local velocity, range, adjacentDistance, laneOffsetDistance, distSquared, speedEstimate
+local rangeAdjust = false
+local speedAdjust
 
 local lidarFOV = (cfg.minFOV+cfg.maxFOV)*0.5
 local currentLidarFOV
@@ -22,33 +29,29 @@ local inVehicleDeltaCamRot
 local isHistoryActive = false
 local historyIndex = 0
 
--- local speedMax = 200
--- local speedMin = 20
--- local speedLimit = 85
-
 local slowScroll = 500
 local fastScroll = 50
 local scrollWait = slowScroll
 local scrollDirection = nil
 
 -- local function forward declarations
-local GetLidarHeadingInfo
+local GetLidarReturn
 local CheckInputRotation, HandleZoom
 local PlayButtonPressBeep, PlayFastAlertBeep
 
 --	TOGGLE LIDAR DISPLAY COMMAND
 RegisterCommand('lidar', function(source, args)
-	if holdingLidarGun then
-		-- open HUD Display and calibrate
+	if holdingLidarGun and not hudMode then
+		-- open HUD Display and self-test
 		if shown == true then
 			HUD:SetLidarDisplayState(false)
 		else
 			HUD:SetLidarDisplayState(true)
 		end	
 		shown = not shown
-		if not calibrated and not calibrating then
-			calibrating = true
-			calibrated = HUD:DisplayCalibration()
+		if not selfTestState and not selfTestInProgress then
+			selfTestInProgress = true
+			selfTestState = HUD:DisplaySelfTest()
 		end
 	end
 end)
@@ -65,14 +68,70 @@ RegisterCommand('lidarweapon', function(source, args)
 end)
 TriggerEvent('chat:addSuggestion', '/lidarweapon', 'Equip / Remove lidar weapon.')
 
+--	SHOW LIDAR TO NEAREST PLAYER COMMAND
+RegisterCommand('lidarshow', function(source, args)
+	if holdingLidarGun and shown then
+		local players = GetActivePlayers()
+		local closestDistance = -1
+		local closestPlayer = -1
+		local playerPed = PlayerPedId()
+		local playerCoords = GetEntityCoords(playerPed)
+
+		for i=1,#players do
+			local targetPed = GetPlayerPed(players[i])
+			if targetPed ~= playerPed then
+				local targetCoords = GetEntityCoords(targetPed)
+				local distance = #(playerCoords - targetCoords)
+				if distance <= 3 and (closestDistance == -1 or distance < closestDistance) then
+					closestPlayer = players[i]
+					closestDistance = distance
+				end
+			end
+		end
+		
+		if closestPlayer ~= -1 then
+			HUD:GetCurrentDisplayData(GetPlayerServerId(closestPlayer))
+		end
+	end
+end)
+TriggerEvent('chat:addSuggestion', '/lidarshow', 'Show lidar display to nearest player for 5 seconds.')
+
+RegisterNetEvent("prolaser4:ReturnDisplayData")
+AddEventHandler("prolaser4:ReturnDisplayData", function(displayData)
+	if not beingShownLidarGun and not shown then
+		beingShownLidarGun = true
+		HUD:SetSelfTestState(true)
+		if (displayData.onHistory) then
+			HUD:SetHistoryState(true)
+			HUD:SetHistoryData(displayData.counter, { time = displayData.time, clock = displayData.clock } )
+		else
+			HUD:SetHistoryState(false)
+			HUD:SendPeersDisplayData(displayData)
+		end
+		Wait(500)
+		HUD:SetLidarDisplayState(true)
+		
+		local timer = GetGameTimer() + 5000
+		while GetGameTimer() < timer do
+			Wait(1000)
+		end
+		HUD:SetLidarDisplayState(false)
+		Wait(500)
+		HUD:SetHistoryState(false)
+		HUD:SetSelfTestState(selfTestState)
+		beingShownLidarGun = false
+	end
+end)
+
 --	MAIN GET VEHICLE TO CLOCKTHREAD
 Citizen.CreateThread(function()
 	Wait(500)
 	-- initialize textures & replace weapon string name
 	AddTextEntryByHash(GetHashKey("WT_VPISTOL"), "ProLaser 4")
 	RequestStreamedTextureDict("w_pi_vintage_pistol")
-	HUD:SetCalibrationState(calibrated, false)
-	HUD:SendAudioVolumes()
+	HUD:SetSelfTestState(selfTestState, false)
+	HUD:SendBatteryPercentage()
+	HUD:SendConfigData()
 		
 	while not HasStreamedTextureDictLoaded("w_pi_vintage_pistol") do
 		Wait(100)
@@ -81,13 +140,11 @@ Citizen.CreateThread(function()
 	while true do
 		ped = PlayerPedId()
 		holdingLidarGun = GetSelectedPedWeapon(ped) == lidarGunHash
-		isInVehicle = IsPedInAnyVehicle(ped, true)
-		if shown and holdingLidarGun and IsPlayerFreeAiming(PlayerId()) then
-			found, target = GetEntityPlayerIsFreeAimingAt(PlayerId())
-			if IsPedInAnyVehicle(target) then
-				target = GetVehiclePedIsIn(target, false)
-			end
-			Citizen.Wait(100)			
+		if holdingLidarGun then
+			isInVehicle = IsPedInAnyVehicle(ped, true)
+			isAiming = IsPlayerFreeAiming(PlayerId())
+			isGtaMenuOpen = IsWarningMessageActive() or IsPauseMenuActive()
+			Citizen.Wait(100)		
 		else
 			Citizen.Wait(500)
 		end
@@ -101,20 +158,22 @@ Citizen.CreateThread( function()
 		Citizen.Wait(1)
 		if holdingLidarGun then
 			HideHudComponentThisFrame(2)
-			if not hudMode and IsPlayerFreeAiming(PlayerId()) then
-				DrawSprite("w_pi_vintage_pistol", "lidar_reticle", 0.5, 0.5, 0.005, 0.01, 0.0, 200, 200, 200, 255)
-			end
-			DisablePlayerFiring(ped, true ) 				-- Disable Weapon Firing
-			DisableControlAction(0, cfg.trigger, true) 		-- Disable Trigger Action
-			DisableControlAction(0, cfg.previousHistory, true) 
-			DisableControlAction(0, cfg.nextHistory, true) 
-			DisableControlAction(0, 142, true) 				-- INPUT_MELEE_ATTACK_ALTERNATE
-			-- if aiming down sight disable change weapon to enable scrolling without HUD wheel opening
-			if IsPlayerFreeAiming(PlayerId()) then
+			if isAiming then
+				if not hudMode then
+					DrawSprite("w_pi_vintage_pistol", "lidar_reticle", 0.5, 0.5, 0.005, 0.01, 0.0, 200, 200, 200, 255)
+				else
+					DisableControlAction(0, 26, true) 			-- INPUT_LOOK_BEHIND
+				end
+				-- if aiming down sight disable change weapon to enable scrolling without HUD wheel opening
 				DisableControlAction(0, 99, true)				-- INPUT_VEH_SELECT_NEXT_WEAPON
 				DisableControlAction(0, 16, true)				-- INPUT_SELECT_NEXT_WEAPON
 				DisableControlAction(0, 17, true)				-- INPUT_SELECT_PREV_WEAPON
 			end
+			DisablePlayerFiring(ped, true) 						-- Disable Weapon Firing
+			DisableControlAction(0, cfg.trigger, true) 			-- Disable Trigger Action
+			DisableControlAction(0, cfg.previousHistory, true) 
+			DisableControlAction(0, cfg.nextHistory, true) 
+			DisableControlAction(0, 142, true) 					-- INPUT_MELEE_ATTACK_ALTERNATE
 		end
 	end
 end)
@@ -128,16 +187,18 @@ Citizen.CreateThread( function()
 			if not hudMode and fpAimDownSight and (inFirstPersonPed or inFirstPersonVeh) then
 				if not shown then
 					shown = true
-					if not calibrated and not calibrating then
-						calibrating = true
-						HUD:DisplayCalibration()
+					if not selfTestState and not selfTestInProgress then
+						selfTestInProgress = true
+						HUD:DisplaySelfTest()
 					end			
 				end
 				hudMode = true
 				HUD:SetDisplayMode('ADS')
+				DisplayRadar(false)
 			elseif shown and hudMode and not (fpAimDownSight and (inFirstPersonPed or inFirstPersonVeh)) then
 				hudMode = false
 				HUD:SetDisplayMode('DISPLAY')
+				DisplayRadar(true)
 			end
 			Wait(100)
 		else
@@ -146,17 +207,17 @@ Citizen.CreateThread( function()
 	end
 end)
 
---LIDAR MAIN THREAD: handle hiding lidar NUI, calibration, ADS aiming, clocking, and control handling.
+--LIDAR MAIN THREAD: handle hiding lidar NUI, self-test, ADS aiming, clocking, and control handling.
 Citizen.CreateThread( function()
 	while true do
 		Citizen.Wait(1)
 		-- Hide HUD if weapon not selected, keep lidar on
-		if (not holdingLidarGun or IsWarningMessageActive() or IsPauseMenuActive()) and shown and not tempHidden then
+		if ( ( not holdingLidarGun and not beingShownLidarGun ) or isGtaMenuOpen) and shown and not tempHidden then
 			HUD:SetDisplayMode('DISPLAY')
 			hudMode = false
 			HUD:SetLidarDisplayState(false)
 			tempHidden = true
-		elseif holdingLidarGun and not (IsWarningMessageActive() or IsPauseMenuActive()) and tempHidden then
+		elseif holdingLidarGun and not isGtaMenuOpen and tempHidden then
 			HUD:SetLidarDisplayState(true)
 			tempHidden = false
 		end
@@ -177,7 +238,7 @@ Citizen.CreateThread( function()
 					Wait(1)
 				end
 				Wait(100)
-			elseif not fpAimDownSight and (inFirstPersonPed or inFirstPersonVeh) and IsPlayerFreeAiming(PlayerId()) then
+			elseif not fpAimDownSight and (inFirstPersonPed or inFirstPersonVeh) and isAiming then
 				fpAimDownSight = true
 				SetPlayerForcedAim(PlayerId(), true)
 			end	
@@ -200,19 +261,20 @@ Citizen.CreateThread( function()
 				end
 			end
 			--	Get target speed and update display
-			if shown and not tempHidden and calibrated then
-				if IsDisabledControlPressed(1, cfg.trigger) and not isHistoryActive and IsPlayerFreeAiming(PlayerId()) and not (tpAimDownSight and (GetGameplayCamRelativeHeading() < -131 or GetGameplayCamRelativeHeading() > 178)) then 
-					allowable, towards = GetLidarHeadingInfo(target, ped)
-					if allowable or not cfg.accurateAngle then
-						speed = math.floor(GetEntitySpeed(target)*2.236936) -- m/s to mph
-						range  = GetDistanceBetweenCoords(GetEntityCoords(ped),GetEntityCoords(target), true)*3.2808399	--m to ft
-						if speed > 0 then
-							HUD:SendLidarUpdate(speed, string.format("%.1f", range), towards)
-							HIST:StoreLidarData(target, speed, range, towards)
-						end
+			if shown and not tempHidden and selfTestState then
+				if IsDisabledControlPressed(1, cfg.trigger) and not isHistoryActive and isAiming and not (tpAimDownSight and (GetGameplayCamRelativeHeading() < -131 or GetGameplayCamRelativeHeading() > 178)) then 
+					found, target = GetEntityPlayerIsFreeAimingAt(PlayerId())
+					if IsPedInAnyVehicle(target) then
+						target = GetVehiclePedIsIn(target, false)
+					end
+					speed, range, towards = GetLidarReturn(target, ped)
+					if towards ~= -1 then
+						HUD:SendLidarUpdate(speed, string.format("%.1f", range), towards)
+						HIST:StoreLidarData(target, speed, range, towards)
 					else
 						HUD:ClearLidarDisplay()
 					end
+					Wait(250)
 				--	Hides history if on first, otherwise go to previous history
 				elseif IsDisabledControlPressed(0, cfg.previousHistory) and #HIST.history > 0 then
 					if isHistoryActive then
@@ -243,41 +305,6 @@ Citizen.CreateThread( function()
 				elseif IsDisabledControlJustReleased(0, cfg.changeSight) and fpAimDownSight then
 					HUD:ChangeSightStyle()
 				end
-				--[[
-				-- Increase fast speed.
-				elseif IsDisabledControlPressed(0, cfg.increaseFastSpeed) and not isHistoryActive then
-					if not isFastSpeedActive then
-						HUD:SetFastSpeedState(true)
-						isFastSpeedActive = true
-					end
-					if speedLimit < speedMax then
-						speedLimit = speedLimit + 1
-					end
-					if scrollWait == slowScroll then
-						PlayButtonPressBeep()
-					end
-					HUD:SendFastLimit(speedLimit)
-					Wait(scrollWait)
-				-- Decrease fast speed.
-				elseif IsDisabledControlPressed(0, cfg.decreaseFastSpeed) and not isHistoryActive then
-					if not isFastSpeedActive then
-						HUD:SetFastSpeedState(true)
-						isFastSpeedActive = true
-					end
-					isFastSpeedActive = true
-					if speedLimit > speedMin then
-						speedLimit = speedLimit - 1
-					end
-					if scrollWait == slowScroll then
-						PlayButtonPressBeep()
-					end
-					HUD:SendFastLimit(speedLimit)
-					Wait(scrollWait)	
-				-- Close fast speed.
-				elseif IsDisabledControlPressed(2, cfg.closeFastSpeed) and isFastSpeedActive then
-					isFastSpeedActive = false
-					HUD:SetFastSpeedState(false)
-				end]]
 			end
 		else
 			Wait(500)
@@ -285,12 +312,12 @@ Citizen.CreateThread( function()
 	end
 end)
 
--- SCROLL NEXT SPEED: handles fast scrolling, if holding scroll increase scroll speed.
+-- SCROLL SPEED: handles fast scrolling, if holding scroll increase scroll speed.
 CreateThread(function()
 	Wait(1000)
 	while true do
-		if holdingLidarGun then
-			if isHistoryActive then
+		if holdingLidarGun and isHistoryActive then
+			if IsDisabledControlPressed(0, cfg.nextHistory) then
 				local count = 0
 				while IsDisabledControlPressed(0, cfg.nextHistory) do
 					count = count + 1
@@ -304,21 +331,7 @@ CreateThread(function()
 				if scrollDirection == 'next' and not IsDisabledControlPressed(0, cfg.nextHistory) then
 					scrollWait = slowScroll
 				end
-			else
-				Wait(200)
-			end
-		else
-			Wait(500)
-		end
-		Wait(0)
-	end
-end)
-
--- SCROLL PREVIOUS SPEED: handles fast scrolling, if holding scroll increase scroll speed.
-CreateThread(function()
-	while true do
-		if holdingLidarGun then
-			if isHistoryActive then
+			elseif IsDisabledControlPressed(0, cfg.previousHistory) then
 				local count = 0
 				while IsDisabledControlPressed(0, cfg.previousHistory) do
 					count = count + 1
@@ -332,8 +345,6 @@ CreateThread(function()
 				if scrollDirection == 'prev' and not IsDisabledControlPressed(0, cfg.previousHistory) then
 					scrollWait = slowScroll
 				end
-			else
-				Wait(200)
 			end
 		else
 			Wait(500)
@@ -341,63 +352,6 @@ CreateThread(function()
 		Wait(0)
 	end
 end)
-
---[[ SCROLL NEXT SPEED: handles fast scrolling, if holding scroll increase scroll speed.
-CreateThread(function()
-	Wait(1000)
-	while true do
-		if holdingLidarGun then
-			if isFastSpeedActive then
-				local count = 0
-				while IsDisabledControlPressed(0, cfg.increaseFastSpeed) do
-					count = count + 1
-					if count > 15 then
-						scrollDirection = 'increase'
-						scrollWait = fastScroll
-						break;
-					end
-					Wait(100)
-				end
-				if scrollDirection == 'next' and not IsDisabledControlPressed(0, cfg.increaseFastSpeed) then
-					scrollWait = slowScroll
-				end
-			else
-				Wait(200)
-			end
-		else
-			Wait(500)
-		end
-		Wait(0)
-	end
-end)
-
--- SCROLL PREVIOUS SPEED: handles fast scrolling, if holding scroll increase scroll speed.
-CreateThread(function()
-	while true do
-		if holdingLidarGun then
-			if isFastSpeedActive then
-				local count = 0
-				while IsDisabledControlPressed(0, cfg.decreaseFastSpeed) do
-					count = count + 1
-					if count > 15 then
-						scrollDirection = 'decrease'
-						scrollWait = fastScroll
-						break;
-					end
-					Wait(100)
-				end
-				if scrollDirection == 'decrease' and not IsDisabledControlPressed(0, cfg.decreaseFastSpeed) then
-					scrollWait = slowScroll
-				end
-			else
-				Wait(200)
-			end
-		else
-			Wait(500)
-		end
-		Wait(0)
-	end
-end)]]
 
 -- AIM DOWNSIGHTS CAM & ZOOM
 CreateThread(function()
@@ -425,7 +379,6 @@ CreateThread(function()
 					if ((camInVehicle and not isInVehicle) or (not camInVehicle and isInVehicle)) or not holdingLidarGun then
 						fpAimDownSight = false
 						SetPlayerForcedAim(PlayerId(), false)
-						delayEntry = true
 						break
 					end
 					zoomvalue = (1.0/(cfg.maxFOV-cfg.minFOV))*(lidarFOV-cfg.minFOV)
@@ -446,26 +399,56 @@ end)
 
 
 --FUNCTIONS--
---	HEADING LIMIT VALIDATION AND TOWARDS/AWAY INFO
-GetLidarHeadingInfo = function(target, ped)
+--	COSINE ERROR CALULCATIONS AND TOWARDS/AWAY STATE
+--	SEE: https://copradar.com/chapts/chapt2/ch2d1.html
+GetLidarReturn = function(target, ped)
 	targetHeading = GetEntityHeading(target)
+	towards = false
+	speedAdjust = 0.0
+	if target == 0 then
+		return 0, 0, -1
+	end
+	
+	-- Get correct heading based on vehicle / hud sight
 	if isInVehicle and fpAimDownSight then
 		pedHeading = GetCamRot(cam, 2)[3]
 	else
 		pedHeading = GetEntityHeading(ped) + GetGameplayCamRelativeHeading()
 	end
-	allowable = true
-	towards = false
 	
-	diffHeading = math.abs((pedHeading - targetHeading + 180) % 360 - 180)
-	if ( diffHeading > cfg.maxAngle and diffHeading < (180 - cfg.maxAngle) ) then
-		allowable =  false
-	end
-	
+	local diffHeading = math.abs(pedHeading - targetHeading) % 180
 	if ( diffHeading > 135 ) then
 		towards = true
 	end
-	return allowable, towards
+
+	-- If the difference in heading is greater than 90 degrees, subtract it from 180 to get the angle regardless of direction
+	if diffHeading > 90 then
+	  diffHeading = 180 - diffHeading
+	end	
+	
+	range  = GetDistanceBetweenCoords(GetEntityCoords(ped),GetEntityCoords(target), true)*3.2808399
+	diffHeadingRadians = math.rad(diffHeading)
+	velocity = GetEntitySpeed(target)*2.236936
+
+	-- If diff abs heading > 45 degress zero out invalid angle
+	if diffHeading > 15 then
+		speedAdjust = 1 - (diffHeading / 100)
+		rangeAdjust = not rangeAdjust
+		if rangeAdjust then
+			range = range - math.random(1,math.floor(range))
+		end
+	end
+	
+	if velocity > 0 then
+		adjacentDistance = range * math.cos(diffHeadingRadians)
+		laneOffsetDistance = range * math.sin(diffHeadingRadians)
+		distSquared = adjacentDistance^2 + laneOffsetDistance^2
+		speedEstimate = math.abs(math.floor(velocity * (adjacentDistance / math.sqrt(distSquared))-speedAdjust))
+	elseif range > 1800 then
+		return 0, 0, -1
+	end
+	
+	return speedEstimate, range, towards
 end
 
 --	AIM DOWNSIGHTS PAN
@@ -524,13 +507,4 @@ PlayButtonPressBeep = function()
 	  file   = 'LidarBeep',
 	})
 end
-
---[[
-PlayFastAlertBeep = function()
-	SendNUIMessage({
-	  action  = 'PlayFastAlertBeep',
-	  file   = 'LidarFastAlert',
-	})
-end
-]]
 
