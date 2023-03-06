@@ -153,7 +153,7 @@ CreateThread( function()
 	local recordCount = 0
 	
 -- Get prolaser4 version from github
-	PerformHttpRequest('https://raw.githubusercontent.com/TrevorBarns/main/version', function(err, responseText, headers)
+	PerformHttpRequest('https://raw.githubusercontent.com/TrevorBarns/ProLaser4/main/version', function(err, responseText, headers)
 		if responseText ~= nil and responseText ~= '' then
 			repoVersion = semver(responseText:gsub('\n', ''))
 		end
