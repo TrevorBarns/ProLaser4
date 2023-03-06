@@ -54,4 +54,4 @@ Lidar Gun Model & Textures by __Scaarus__! Thank you!
 
 __All credit to those above who contributed there projects can be found here:__
 * Lidar Gun Model & Textures by Scaarus: https://www.lcpdfr.com/downloads/gta5mods/misc/18506-prolaser-4-radar-gun/
-
+* Lidar Gun Weapon Wheel Textures by Medicmojo: https://www.lcpdfr.com/downloads/gta5mods/misc/38705-prolaser-4-lidar-hud-icon-and-text/
