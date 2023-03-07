@@ -54,7 +54,7 @@ cfg.loggingCleanUpInterval = 14
 --	Age in days of records to automatically delete. disable: set equal to -1 (default: 14 days)
 cfg.loggingSelectLimit = 2000
 --	Maxmium number of records users can view in records tablet. Increasing this can increase load on server and database, which may induce lag.
-cfg.imgurApiKey = 'Client-ID 8bbef9ae41ff787'
+cfg.imgurApiKey = ''
 --	Enables "printing" records, uploads screenshot to Imgur and returns link. See docs. https://api.imgur.com/oauth2/addclient
 --		Format:'Client-ID XXXXXXXXXXXXXXX' 
 
