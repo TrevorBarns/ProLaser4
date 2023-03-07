@@ -17,7 +17,6 @@ dependencies {
 files {
 	'speedlimits.json',
 	'UI/html/index.html',
-	'UI/html/jquery.js',
 	'UI/html/fonts/**.ttf',
 	'UI/html/**.png',
 	'UI/html/**.jpg',
