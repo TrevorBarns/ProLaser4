@@ -1,5 +1,5 @@
 ------------------------------
-fx_version 'adamant'
+fx_version 'cerulean'
 games { 'gta5' }
 lua54 'on'
 
@@ -8,22 +8,23 @@ description 'Lidar Resource.'
 
 version '1.0.0'			-- Readonly version of currently installed version.
 ------------------------------
-ui_page('html/index.html')
+ui_page('UI/html/index.html')
 
 dependencies {
-    'oxmysql',
+    -- 'oxmysql',		-- uncomment for persistent records & record management tablet. See docs and configs.
 }
 
 files {
 	'speedlimits.json',
-	'html/index.html',
-	'html/jquery.js',
-	'html/fonts/**.ttf',
-	'html/**.png',
-	'html/**.jpg',
-	'html/lidar.js',
-	'html/style.css',
-	'html/sounds/*.ogg',
+	'UI/html/index.html',
+	'UI/html/jquery.js',
+	'UI/html/fonts/**.ttf',
+	'UI/html/**.png',
+	'UI/html/**.jpg',
+	'UI/html/lidar.js',
+	'UI/html/style.css',
+	'UI/html/sounds/*.ogg',
+	'UI/weapons_dlc_bb.png',
 	'metas/*.meta',
 }
 
@@ -35,7 +36,7 @@ client_scripts {
 }
 
 server_scripts {
-    '@oxmysql/lib/MySQL.lua',
+    -- '@oxmysql/lib/MySQL.lua', -- uncomment for persistent records & record management tablet. See docs and configs.
 	'UTIL/sv_*.lua',
 	'UTIL/semver.lua'
 }

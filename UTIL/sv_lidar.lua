@@ -43,6 +43,7 @@ if cfg.logging then
 	
 	local countQuery = 'SELECT COUNT(*) FROM prolaser4'
 	local cleanupQuery = 'DELETE FROM prolaser4 WHERE timestamp < DATE_SUB(NOW(), INTERVAL ? DAY);'
+	
 	-- Debugging Command
 	RegisterCommand('lidarsqlupdate', function(source, args)
 		-- check if from server console
@@ -77,10 +78,10 @@ if cfg.logging then
 			if #LOGGED_EVENTS > 0 then
 				DebugPrint(string.format('^3[INFO]: Started inserting %s records.^7', #LOGGED_EVENTS))
 				isInsertAlreadyActive = true
-				-- Execute the prepared statement for each entry
+				-- Execute the insert statement for each entry
 				for _, entry in ipairs(LOGGED_EVENTS) do
 					-- Bind the parameters to the statement
-					MySQL.prepare(insertQuery, {entry.time, entry.speed, entry.range, entry.targetX, entry.targetY, entry.player, entry.street, entry.selfTestTimestamp}, function(returnData) end)
+					MySQL.insert(insertQuery, {entry.time, entry.speed, entry.range, entry.targetX, entry.targetY, entry.player, entry.street, entry.selfTestTimestamp}, function(returnData) end)
 				end
 				LOGGED_EVENTS = {}
 				isInsertAlreadyActive = false

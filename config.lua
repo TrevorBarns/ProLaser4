@@ -15,7 +15,7 @@ cfg.previousHistory = 174
 
 
 --[[MISC CONFIGURATIONS]]
-cfg.performSelfTest = true
+cfg.performSelfTest = false
 --	On lidar first open perform a self-test sequence.
 cfg.lidarGunHash = "WEAPON_VINTAGEPISTOL"
 --	Lidar gun weapon string
@@ -44,7 +44,7 @@ cfg.displayControls = true
 
 
 --[[RECORD TABLET (SQL REQUIRED)]]
-cfg.logging = true
+cfg.logging = false
 --	Send logged clocks to the server for SQL storage.
 cfg.loggingPlayersOnly = false
 --	Require vehicle be driven by player to log.
@@ -54,9 +54,9 @@ cfg.loggingCleanUpInterval = 14
 --	Age in days of records to automatically delete. disable: set equal to -1 (default: 14 days)
 cfg.loggingSelectLimit = 2000
 --	Maxmium number of records users can view in records tablet. Increasing this can increase load on server and database, which may induce lag.
-cfg.imgurApiKey = 'Client-ID 081422c0b94a345'
---	Enables "printing" records, uploads screenshot to Imgur and returns link. See docs.
---		Format:'Client-ID XXXXXXXXXXXXXXX'
+cfg.imgurApiKey = 'Client-ID 8bbef9ae41ff787'
+--	Enables "printing" records, uploads screenshot to Imgur and returns link. See docs. https://api.imgur.com/oauth2/addclient
+--		Format:'Client-ID XXXXXXXXXXXXXXX' 
 
 
 --[[DEBUGGING]]

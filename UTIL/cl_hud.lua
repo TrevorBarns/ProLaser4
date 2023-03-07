@@ -22,7 +22,6 @@ function HUD:SendConfigData()
 		recordLimit = cfg.loggingSelectLimit,
 		version = GetResourceMetadata(GetCurrentResourceName(), 'version', 0)
 	})
-	print(GetResourceMetadata(GetCurrentResourceName(), 'version', 0))
 end
 
 -- Send Lidar return data

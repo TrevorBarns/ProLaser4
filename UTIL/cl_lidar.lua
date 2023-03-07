@@ -137,6 +137,11 @@ Citizen.CreateThread(function()
 		Wait(100)
 	end
 	
+	-- replace weapon wheel textures
+	local txd = CreateRuntimeTxd('prolaser4')
+	CreateRuntimeTextureFromImage(txd, 'weapons_dlc_bb', 'UI/weapons_dlc_bb.png')
+	AddReplaceTexture('hud', 'weapons_dlc_bb', 'prolaser4', 'weapons_dlc_bb')
+
 	while true do
 		ped = PlayerPedId()
 		holdingLidarGun = GetSelectedPedWeapon(ped) == lidarGunHash
