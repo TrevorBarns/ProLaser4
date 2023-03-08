@@ -23,10 +23,6 @@ cfg.clockSFX = 0.02
 --	Sound effect volume when lidar is clocking (default: 0.02)
 cfg.selfTestSFX = 0.02
 --	Sound effect volume when lidar finishs self-test (default: 0.02)
-cfg.accurateAngle = true
---	Require target vehicle and lidar gun heading to be within max angle. IRL: Greater the angle the less accurate.
-cfg.maxAngle = 20.0
---	Maximum angle difference between lidar gun and vehicle. 
 
 
 --[[ADS Parameters]]
