@@ -1,7 +1,6 @@
 local cfg = cfg
-local isInsertAlreadyActive = false
 
---	Repeater for display data to target player
+--	ShowLidar, repeater event to nearest player to show lidar to.
 RegisterServerEvent('prolaser4:SendDisplayData')
 AddEventHandler('prolaser4:SendDisplayData', function(target, data)
 	TriggerClientEvent('prolaser4:ReturnDisplayData', target, data)
@@ -13,17 +12,19 @@ function DebugPrint(text)
 	end
 end
 
-if cfg.logging then
+--[[--------------- ADVANCED LOGGING --------------]]
+if cfg.logging and MySQL ~= nil then
+	local isInsertActive = false
 	LOGGED_EVENTS = { }
+	TEMP_LOGGED_EVENTS = { }
 	
-	--	-------------- INSERT DATA --------------
+	---------------- QUERIES ----------------
 	local insertQuery = [[
 		INSERT INTO prolaser4 
 			(timestamp, speed, distance, targetX, targetY, player, street, selfTestTimestamp) 
 		VALUES 
 			(STR_TO_DATE(?, "%m/%d/%Y %H:%i"), ?, ?, ?, ?, ?, ?, STR_TO_DATE(?, "%m/%d/%Y %H:%i"))
 	]]
-	
 	local selectQueryRaw = [[
 			SELECT 
 				rid,
@@ -40,10 +41,9 @@ if cfg.logging then
 			LIMIT 
 	]]
 	local selectQuery = string.format("%s %s", selectQueryRaw, cfg.loggingSelectLimit)
-	
 	local countQuery = 'SELECT COUNT(*) FROM prolaser4'
 	local cleanupQuery = 'DELETE FROM prolaser4 WHERE timestamp < DATE_SUB(NOW(), INTERVAL ? DAY);'
-	
+	-----------------------------------------
 	-- Debugging Command
 	RegisterCommand('lidarsqlupdate', function(source, args)
 		-- check if from server console
@@ -53,44 +53,63 @@ if cfg.logging then
 			TriggerClientEvent('chat:addMessage', source, { args = { '^1Error', 'This command can only be executed from the console.' } })
 		end
 	end)
-
+	
+	-----------------------------------------
 	-- Main thread, every restart remove old records if needed, insert records every 5 minutes.
 	CreateThread(function()
-		while cfg.logging do
+		if cfg.loggingCleanUpInterval ~= -1 then
+			CleanUpRecordsFromSQL()
+		end
+		while true do
 			InsertRecordsToSQL()
 			Wait(60000)
 		end
 	end)
 
+	---------------- SETTER / INSERT ----------------
 	--	Shared event handler colate all lidar data from all players for SQL submission.
 	RegisterServerEvent('prolaser4:SendLogData')
 	AddEventHandler('prolaser4:SendLogData', function(logData)
 		local playerName = GetPlayerName(source)
-		for i, entry in ipairs(logData) do
-			entry.player = playerName
-			table.insert(LOGGED_EVENTS, entry)
-		end
+		if not isInsertActive then
+    		for i, entry in ipairs(logData) do
+    			entry.player = playerName
+    			table.insert(LOGGED_EVENTS, entry)
+    		end
+        else
+			-- since the insertion is active, inserting now may result in lost data, store temporarily.
+            for i, entry in ipairs(logData) do
+    			entry.player = playerName
+    			table.insert(TEMP_LOGGED_EVENTS, entry)
+            end
+	    end
 	end)
 
 	--	Inserts records to SQL table
 	function InsertRecordsToSQL()
-		if not isInsertAlreadyActive then
+		if not isInsertActive then
 			if #LOGGED_EVENTS > 0 then
 				DebugPrint(string.format('^3[INFO]: Started inserting %s records.^7', #LOGGED_EVENTS))
-				isInsertAlreadyActive = true
+				isInsertActive = true
 				-- Execute the insert statement for each entry
 				for _, entry in ipairs(LOGGED_EVENTS) do
-					-- Bind the parameters to the statement
 					MySQL.insert(insertQuery, {entry.time, entry.speed, entry.range, entry.targetX, entry.targetY, entry.player, entry.street, entry.selfTestTimestamp}, function(returnData) end)
 				end
+				-- Remove processed records
 				LOGGED_EVENTS = {}
-				isInsertAlreadyActive = false
+				isInsertActive = false
+				-- Copy over temp entries to be processed next run
+				for _, entry in ipairs(TEMP_LOGGED_EVENTS) do
+				    table.insert(LOGGED_EVENTS, entry)
+				end
+				-- Remove copied over values.
+				TEMP_LOGGED_EVENTS = {}
 				DebugPrint('^3[INFO]: Finished inserting records.^7')
 			end
 		end
 	end
 	
-	--	-------------- GETTER / SELECT --------------
+	---------------- GETTER / SELECT ----------------
 	--	C->S request all record data
 	RegisterNetEvent('prolaser4:GetLogData')
 	AddEventHandler('prolaser4:GetLogData', function()
@@ -114,18 +133,8 @@ if cfg.logging then
 		print(string.format('^8[ERROR]: ^3Database timed out for %s after 5 seconds.\n\t\t1) Ensure your database is online\n\t\t2) restart oxmysql.^7', GetPlayerName(source)))
 	end)
 
-	--	-------------- AUTO CLEANUP --------------
-	-- Calls sql to prune records every 6 hours
-	CreateThread(function()
-		if cfg.loggingCleanUpInterval ~= -1 then
-			while true do
-				CleanUpRecordsFromSQL()
-				Wait(21600000)
-			end
-		end
-	end)
-	
-	--	Clean up records after 30 days old.
+	------------------ AUTO CLEANUP -----------------
+	--	Clean up records after X days old.
 	function CleanUpRecordsFromSQL()
 		MySQL.query(cleanupQuery, {cfg.loggingCleanUpInterval}, function(returnData)
 			if returnData.affectedRows > 0 then
@@ -134,7 +143,7 @@ if cfg.logging then
 		end)
 	end
 	
-	--	-------------- RECORD COUNT --------------
+	------------------ RECORD COUNT -----------------
 	function GetRecordCount()
 		local recordCount = '^8FAILED TO RETRIEVE        ^7'
 		MySQL.query(countQuery, {}, function(returnData)
@@ -147,7 +156,7 @@ if cfg.logging then
 	end
 end
 
--- Startup & Version Checking
+--[[------------ STARTUP / VERSION CHECKING -----------]]
 CreateThread( function()
 	local currentVersion = semver(GetResourceMetadata(GetCurrentResourceName(), 'version', 0))
 	local repoVersion = semver('0.0.0')
@@ -161,7 +170,11 @@ CreateThread( function()
 	end)
 	
 	if cfg.logging then
-		recordCount = GetRecordCount()
+		if MySQL == nil then
+			print('^3[ERROR]: logging enabled, but oxmysql not found, did you uncomment the oxmysql lines in fxmanifest.lua.\n\t\tRemember, changes to fxmanifest are only loaded after running `refresh`, then `restart`.^7')
+		else
+			recordCount = GetRecordCount()
+		end
 	end
 	
 	Wait(1000)
