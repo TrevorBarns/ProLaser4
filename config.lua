@@ -46,6 +46,7 @@ cfg.loggingPlayersOnly = false
 --	Require vehicle be driven by player to log.
 cfg.loggingOnlySpeeders = false
 --	Only log clocks above speedlimit as defined in speedlimits.json.
+cfg.loggingInsertInterval = 5
 --	How often, in minutes, to insert new records from the server.
 cfg.loggingCleanUpInterval = 14
 --	Age in days of records to automatically delete. disable: set equal to -1 (default: 14 days)

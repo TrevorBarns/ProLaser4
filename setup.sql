@@ -12,5 +12,5 @@ CREATE TABLE `prolaser4` (
 )
 COLLATE='latin1_swedish_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=1193
+AUTO_INCREMENT=1
 ;
