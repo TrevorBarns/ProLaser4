@@ -74,12 +74,11 @@ RegisterCommand('lidarshow', function(source, args)
 		local players = GetActivePlayers()
 		local closestDistance = -1
 		local closestPlayer = -1
-		local playerPed = PlayerPedId()
-		local playerCoords = GetEntityCoords(playerPed)
+		local playerCoords = GetEntityCoords(ped)
 
 		for i=1,#players do
 			local targetPed = GetPlayerPed(players[i])
-			if targetPed ~= playerPed then
+			if targetPed ~= ped then
 				local targetCoords = GetEntityCoords(targetPed)
 				local distance = #(playerCoords - targetCoords)
 				if distance <= 3 and (closestDistance == -1 or distance < closestDistance) then
@@ -96,10 +95,12 @@ RegisterCommand('lidarshow', function(source, args)
 end)
 TriggerEvent('chat:addSuggestion', '/lidarshow', 'Show lidar display to nearest player for 5 seconds.')
 
+local isCurrentlyBeingShown = false
 RegisterNetEvent("prolaser4:ReturnDisplayData")
 AddEventHandler("prolaser4:ReturnDisplayData", function(displayData)
-	if not beingShownLidarGun and not shown then
-		beingShownLidarGun = true
+	if not shown then
+		isCurrentlyBeingShown = false
+		
 		HUD:SetSelfTestState(true)
 		if (displayData.onHistory) then
 			HUD:SetHistoryState(true)
@@ -111,15 +112,20 @@ AddEventHandler("prolaser4:ReturnDisplayData", function(displayData)
 		Wait(500)
 		HUD:SetLidarDisplayState(true)
 		
-		local timer = GetGameTimer() + 5000
+		isCurrentlyBeingShown = true
+		local timer = GetGameTimer() + 8000
 		while GetGameTimer() < timer do
-			Wait(1000)
+			-- if displayed again, do not hide return and use new event thread
+			if not isCurrentlyBeingShown then
+				return
+			end
+			Wait(250)
 		end
+		
 		HUD:SetLidarDisplayState(false)
 		Wait(500)
 		HUD:SetHistoryState(false)
 		HUD:SetSelfTestState(selfTestState)
-		beingShownLidarGun = false
 	end
 end)
 
