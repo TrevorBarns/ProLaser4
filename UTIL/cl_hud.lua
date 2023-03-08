@@ -20,7 +20,8 @@ function HUD:SendConfigData()
 		selfTestSFX = cfg.selfTestSFX,
 		imgurApiKey = cfg.imgurApiKey,
 		recordLimit = cfg.loggingSelectLimit,
-		version = GetResourceMetadata(GetCurrentResourceName(), 'version', 0)
+		version = GetResourceMetadata(GetCurrentResourceName(), 'version', 0),
+		name = GetCurrentResourceName()
 	})
 end
 

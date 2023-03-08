@@ -11,6 +11,7 @@ var version = -1
 var clockToneMute;
 var databaseRecords = [];
 var startTimer;
+var resourceName;
 
 // TABLET
 var map;
@@ -44,11 +45,7 @@ $(document).keyup(function(event) {
 	//			Esc
 	if (event.keyCode == 27) 
 	{
-		$.post('https://ProLaser4/CloseTablet', "", function( datab ) {
-			if ( datab != "ok" ) {
-				console.log( datab );
-			}            
-		} );
+		sendDataToLua('CloseTablet', undefined);
 	}
 } );
  
@@ -65,7 +62,6 @@ $(document).ready(function () {
 		$('#btn-this-page').prop('checked', true);
 		$('#btn-all-pages').prop('checked', false);		
 				
-		
 		mapMarkerPlayerOption = false;
 		dataTable.destroy();
 		$('#clock-table-container').html(
@@ -86,11 +82,7 @@ $(document).ready(function () {
 			  '</tbody>' +
 			'</table>'
 		)
-		$.post('https://ProLaser4/CloseTablet', "", function( datab ) {
-			if ( datab != "ok" ) {
-				console.log( datab );
-			}            
-		} );
+		sendDataToLua('CloseTablet', undefined);
 	});
 	$('#view-record-container').hide();
 	$('#print-result-dialog-container').hide();
@@ -263,6 +255,7 @@ $(document).ready(function () {
 			imgurApiKey = event.data.imgurApiKey;	
 			recordLimit = event.data.recordLimit;
 			version = event.data.version;
+			resourceName = event.data.name;
 			$('#tablet-version').text('v'+version);
         } else if (event.data.action == 'SetHistoryState') {
             if (event.data.state) {
@@ -301,12 +294,7 @@ $(document).ready(function () {
 				returnData.startTime = startTimer;
 				returnData.battery = $('#battery').attr('src');
 			}
-			
-			$.post( 'https://ProLaser4/ReturnCurrentDisplayData', JSON.stringify( returnData ), function( datab ) {
-				if ( datab != "ok" ) {
-					console.log( datab );
-				}            
-			} );
+			sendDataToLua('ReturnCurrentDisplayData', returnData);
 		} else if (event.data.action == 'SendPeersDisplayData') {
 			$('#speed').text(event.data.speed);
             $('#range').text(event.data.range + 'ft');
@@ -332,14 +320,22 @@ $(document).ready(function () {
         } else if (event.data.action == 'SetTabletState') {
             if (!event.data.state) {
                 $('#tablet').fadeOut();
-            }
-        }
+            }   
+		}
     });
 });
 
 
-
 // ======= MAIN SCRIPT =======
+// This function is used to send data back through to the LUA side 
+function sendDataToLua( name, data ) {
+	$.post( "https://"+ resourceName +"/" + name, JSON.stringify( data ), function( datab ) {
+		if ( datab != "ok" ) {
+			console.log( datab );
+		}            
+	} );
+}
+
 // Credit to xotikorukx playSound Fn.
 function playSound(file) {
     if (audioPlayer != null) {
