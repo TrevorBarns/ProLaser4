@@ -31,6 +31,7 @@ const mapOptions = {
 	minZoom: 2,
 	streetViewControl: false,
 	mapTypeControl: false,
+	gestureHandling: 'greedy',
  };
 
 fetch('../../speedlimits.json')
@@ -46,6 +47,9 @@ $(document).keyup(function(event) {
 	if (event.keyCode == 27) 
 	{
 		sendDataToLua('CloseTablet', undefined);
+		$('#loading-dialog-container').hide();	
+		$('#view-record-container').hide();
+		$('#print-result-dialog-container').hide();		
 	}
 } );
  
@@ -55,6 +59,8 @@ $(document).ready(function () {
     $('#history-container').hide();
     $('#tablet').hide();
     $('#loading-dialog-container').hide();
+	$('#view-record-container').hide();
+	$('#print-result-dialog-container').hide();
 	$('#closeTablet').click(function() { 
 		mapMarkerPageOption = true;
 		$('#btn-own').prop('checked', false);
@@ -84,8 +90,6 @@ $(document).ready(function () {
 		)
 		sendDataToLua('CloseTablet', undefined);
 	});
-	$('#view-record-container').hide();
-	$('#print-result-dialog-container').hide();
 	
 	$('#printPrintView').click( function() { 
 		if (imgurApiKey != ''){
@@ -102,7 +106,7 @@ $(document).ready(function () {
 		} else {
 			$('#copyButton').hide();
 			$('#dialogMsg').text("Upload Failed");
-			$('#urlDisplay').text("No Imgur API set.");
+			$('#urlDisplay').text("No Imgur API set. Contact a server developer.");
 			$('#print-result-dialog-container').fadeIn();
 		}
 	});
