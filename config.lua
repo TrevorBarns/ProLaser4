@@ -15,7 +15,7 @@ cfg.previousHistory = 174
 
 
 --[[MISC CONFIGURATIONS]]
-cfg.performSelfTest = false
+cfg.performSelfTest = true
 --	On lidar first open perform a self-test sequence.
 cfg.lidarGunHash = "WEAPON_VINTAGEPISTOL"
 --	Lidar gun weapon string
@@ -46,6 +46,7 @@ cfg.loggingPlayersOnly = false
 --	Require vehicle be driven by player to log.
 cfg.loggingOnlySpeeders = false
 --	Only log clocks above speedlimit as defined in speedlimits.json.
+--	How often, in minutes, to insert new records from the server.
 cfg.loggingCleanUpInterval = 14
 --	Age in days of records to automatically delete. disable: set equal to -1 (default: 14 days)
 cfg.loggingSelectLimit = 2000

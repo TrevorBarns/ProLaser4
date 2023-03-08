@@ -55,14 +55,15 @@ if cfg.logging and MySQL ~= nil then
 	end)
 	
 	-----------------------------------------
-	-- Main thread, every restart remove old records if needed, insert records every 5 minutes.
+	-- Main thread, every restart remove old records if needed, insert records every X minutes as defined by cfg.loggingInsertInterval.
 	CreateThread(function()
+		local insertWait = cfg.loggingInsertInterval * 60000
 		if cfg.loggingCleanUpInterval ~= -1 then
 			CleanUpRecordsFromSQL()
 		end
 		while true do
 			InsertRecordsToSQL()
-			Wait(60000)
+			Wait(insertWait)
 		end
 	end)
 
