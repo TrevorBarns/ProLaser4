@@ -135,11 +135,12 @@ if cfg.logging and MySQL ~= nil then
 	end)
 
 	------------------ AUTO CLEANUP -----------------
-	--	Clean up records after X days old.
+	--	Remove old records after X days old.
 	function CleanUpRecordsFromSQL()
+		DebugPrint('^3[INFO]: Removing old records.^7');
 		MySQL.query(cleanupQuery, {cfg.loggingCleanUpInterval}, function(returnData)
 			if returnData.affectedRows > 0 then
-				DebugPrint(string.format('^3[INFO]: Cleaned up %s records (older than %s days)^7', rowsAffected, cfg.loggingCleanUpInterval));
+				DebugPrint(string.format('^3[INFO]: Removed %s records (older than %s days)^7', rowsAffected, cfg.loggingCleanUpInterval));
 			end
 		end)
 	end
