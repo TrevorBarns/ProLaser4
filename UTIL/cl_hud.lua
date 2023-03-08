@@ -42,7 +42,7 @@ function HUD:SendPeersDisplayData(dataTable)
 		speed = dataTable.speed,
 		range = dataTable.range,
 		arrow = dataTable.arrow,
-		startTime = dataTable.startTime,
+		elapsedTime = dataTable.elapsedTime,
 		battery = dataTable.battery,
 	})
 end

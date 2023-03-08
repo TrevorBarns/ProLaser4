@@ -3,6 +3,7 @@ var context = new AudioContext();
 var audioPlayer = null;
 var clockTone = createClockTone(context);
 var timerHandle;
+var timerDelta;
 var sniperscope = false;
 var clockVolume = 0.02;
 var selfTestVolume = 0.02;
@@ -10,7 +11,6 @@ var recordLimit = -1
 var version = -1
 var clockToneMute;
 var databaseRecords = [];
-var startTimer;
 var resourceName;
 
 // TABLET
@@ -195,7 +195,6 @@ $(document).ready(function () {
             $('#lock').hide();
             $('#arrowup').hide();
             $('#arrowdown').hide();
-            clearInterval(timerHandle);
             if (event.data.towards == true) {
                 $('#speedhud').text('- ' + event.data.speed);
                 $('#arrowup').hide();
@@ -232,7 +231,6 @@ $(document).ready(function () {
                     playSound('LidarCalibration');
                 }
             } else {
-                clearInterval(timerHandle);
                 $('#lidar-home').hide();
                 $('#self-test-container').show();
 				$('#self-test-timer').show();
@@ -242,7 +240,6 @@ $(document).ready(function () {
             $('#self-test-progress').text(event.data.progress);
 			if (event.data.stopTimer){
 				$('#self-test-timer').hide();
-                clearInterval(timerHandle);
 			}
         } else if (event.data.action == 'scopestyle') {
             if (sniperscope) {
@@ -295,7 +292,7 @@ $(document).ready(function () {
 				} else {
 					returnData.arrow = 0;
 				}
-				returnData.startTime = startTimer;
+				returnData.elapsedTime = timerDelta;
 				returnData.battery = $('#battery').attr('src');
 			}
 			sendDataToLua('ReturnCurrentDisplayData', returnData);
@@ -313,9 +310,9 @@ $(document).ready(function () {
 				$('#arrowdown').hide();
 			}
 			$('#battery').attr('src', event.data.battery );
-			if (event.data.speed != '---') {
-				clearInterval(timerHandle);
-				timer(event.data.startTime);				
+			if (event.data.range != '----ft') {
+				timer(event.data.elapsedTime);
+				console.log(event.data.elapsedTime)
 			}
         } else if (event.data.action == 'SendDatabaseRecords') {
 			playerName = event.data.name;
@@ -389,14 +386,16 @@ String.prototype.toHHMMSS = function () {
     return minutes + ':' + seconds;
 };
 
-function timer( start = Date.now() ) {
-	startTimer = start;
+function timer( elapsedTime = 0 ) {
+	var start = Date.now() - elapsedTime
+	console.log(Date.now(), elapsedTime, start)
+	clearInterval(timerHandle);
     timerHandle = setInterval(function () {
-        delta = Date.now() - start; // milliseconds elapsed since start
+        timerDelta = Date.now() - start; // milliseconds elapsed since start
         $('#lock').show();
         $('#timer').show();
-        $('#timer').text(delta.toString().toHHMMSS());
-        $('#self-test-timer').text(delta.toString().toHHMMSS());
+        $('#timer').text(timerDelta.toString().toHHMMSS());
+        $('#self-test-timer').text(timerDelta.toString().toHHMMSS());
     }, 500); // update about every second
 }
 
