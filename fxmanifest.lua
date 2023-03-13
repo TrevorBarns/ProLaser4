@@ -27,8 +27,11 @@ files {
 	'metas/*.meta',
 }
 
-data_file 'WEAPONCOMPONENTSINFO_FILE' 'metas/dlc_hipster.meta'
-data_file 'WEAPONINFO_FILE_PATCH' 'metas/weaponvintagepistol.meta'
+data_file 'WEAPON_METADATA_FILE' 'metas/weaponarchetypes.meta'
+data_file 'WEAPON_ANIMATIONS_FILE' 'metas/weaponanimations.meta'
+data_file 'CONTENT_UNLOCKING_META_FILE' 'metas/contentunlocks.meta'
+data_file 'PED_PERSONALITY_FILE' 'metas/pedpersonality.meta'
+data_file 'WEAPONINFO_FILE' 'metas/weapons.meta'
 
 client_scripts {
 	'UTIL/cl_*.lua',
