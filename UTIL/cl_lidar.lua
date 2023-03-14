@@ -132,27 +132,16 @@ end)
 --	MAIN GET VEHICLE TO CLOCKTHREAD
 Citizen.CreateThread(function()
 	Wait(500)
-	-- initialize textures & replace weapon string name
-	-- if using something other than add-on weapon
-	if cfg.lidarGunHash ~= "WEAPON_PROLASER4" then
-		AddTextEntryByHash(GetHashKey("WT_VPISTOL"), "ProLaser 4")
-		RequestStreamedTextureDict(cfg.lidarGunTextureDict)
-	else
-		AddTextEntry("WT_PROLASER4", "ProLaser 4")
-	end
+	-- Initalize lidar state and vars LUA->JS
 	HUD:SetSelfTestState(selfTestState, false)
 	HUD:SendBatteryPercentage()
 	HUD:SendConfigData()
 
-	if cfg.lidarGunHash ~= "WEAPON_PROLASER4" then
-		while not HasStreamedTextureDictLoaded(cfg.lidarGunTextureDict) do
-			Wait(100)
-		end
-
-		-- replace weapon wheel textures
-		local txd = CreateRuntimeTxd('prolaser4')
-		CreateRuntimeTextureFromImage(txd, 'weapons_dlc_bb', 'UI/weapons_dlc_bb.png')
-		AddReplaceTexture('hud', 'weapons_dlc_bb', 'prolaser4', 'weapons_dlc_bb')
+	-- Texture load check & label replacement.
+	AddTextEntry(cfg.lidarNameHashString, "ProLaser 4")
+	RequestStreamedTextureDict(cfg.lidarGunTextureDict)
+	while not HasStreamedTextureDictLoaded(cfg.lidarGunTextureDict) do
+		Wait(100)
 	end
 
 	while true do
