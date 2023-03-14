@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CWeaponModelInfo__InitDataList>
+	<InitDatas>
+		<!-- ### prolaser4 ### -->
+		<Item>
+			<modelName>w_pi_prolaser4</modelName>
+			<txdName>w_pi_prolaser4</txdName>
+			<ptfxAssetName>null</ptfxAssetName>
+			<lodDist value="50"/>
+		</Item>
+		<Item>
+			<modelName>w_pi_prolaser4_mag1</modelName>
+			<txdName>w_pi_prolaser4_mag1</txdName>
+			<ptfxAssetName>null</ptfxAssetName>
+			<lodDist value="50"/>
+		</Item>
+		<Item>
+			<modelName>w_pi_prolaser4_mag2</modelName>
+			<txdName>w_pi_prolaser4_mag2</txdName>
+			<ptfxAssetName>null</ptfxAssetName>
+			<lodDist value="50"/>
+		</Item>
+	</InitDatas>
+</CWeaponModelInfo__InitDataList>

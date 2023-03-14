@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CPedInventoryLoadOutManager>
+	<LoadOuts>
+		<Item>
+			<Name>LOADOUT_CHEAT_0</Name>
+			<Items>
+				<Item type="CLoadOutWeapon">
+					<WeaponName>WEAPON_PROLASER4</WeaponName>
+					<Ammo value="0" />
+					<Flags />
+					<ComponentNames />
+				</Item>
+			</Items>
+		</Item>
+	</LoadOuts>
+</CPedInventoryLoadOutManager>

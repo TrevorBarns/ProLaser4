@@ -17,8 +17,12 @@ cfg.previousHistory = 174
 --[[MISC CONFIGURATIONS]]
 cfg.performSelfTest = true
 --	On lidar first open perform a self-test sequence.
-cfg.lidarGunHash = "WEAPON_VINTAGEPISTOL"
+cfg.lidarGunHash = "WEAPON_PROLASER4"
 --	Lidar gun weapon string
+cfg.lidarGunTextureDict = "w_pi_prolaser4"
+--	Lidar gun weapon texture dictionary string
+cfg.lidarNameHashString = 'WT_PROLASER4'
+--	Hash name for label replacement located in weapons.meta.
 cfg.clockSFX = 0.02
 --	Sound effect volume when lidar is clocking (default: 0.02)
 cfg.selfTestSFX = 0.02
