@@ -15,6 +15,8 @@ cfg.previousHistory = 174
 
 
 --[[MISC CONFIGURATIONS]]
+cfg.useMetric = true
+--	Use metric kmh and meters instead of imperial mph and feet.
 cfg.performSelfTest = true
 --	On lidar first open perform a self-test sequence.
 cfg.lidarGunHash = "WEAPON_PROLASER4"

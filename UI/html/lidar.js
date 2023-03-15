@@ -12,6 +12,11 @@ var version = -1
 var clockToneMute;
 var databaseRecords = [];
 var resourceName;
+var velocityUnit = 'mph'
+var rangeUnit = 'ft'
+var speedFilters = []
+const imperialSpeedFilters = [0, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+const metricSpeedFilters = [0, 20, 40, 60, 80, 100, 120, 140, 160, 180];
 
 // TABLET
 var map;
@@ -76,8 +81,8 @@ $(document).ready(function () {
 				'<tr>' +
 				  '<th class="rid">Record<br>ID</th>' +
 				  '<th class="timestamp">Timestamp</th>' +
-				  '<th class="speed">Speed<br>(mph)</th>' +
-				  '<th class="distance">Distance<br>(feet)</th>' +
+				  '<th class="speed">Speed<br>(' + velocityUnit + ')</th>' +
+				  '<th class="distance">Distance<br>(' + rangeUnit + ')</th>' +
 				  '<th class="player">Player</th>' +
 				  '<th class="street">Street</th>' +
 				  '<th class="mapping">Map</th>' +
@@ -147,11 +152,11 @@ $(document).ready(function () {
 	var markers = [ { icon: '', label: '<div class="legend-spacer" style="margin-top: -16px;">Own</div>' },
 					{ icon: 'textures/map/green-dot-light.png', label: '< Speedlimit' },  
 					{ icon: 'textures/map/yellow-dot-light.png', label: '> Speedlimit' },  
-					{ icon: 'textures/map/red-dot-light.png', label: '> Speedlimit by 10 mph+' },
+					{ icon: 'textures/map/red-dot-light.png', label: '> Speedlimit by 10 ' + velocityUnit +'+' },
 					{ icon: '', label: '<div class="legend-spacer" style="margin-top: -8px;">Peers</div>' },
 					{ icon: 'textures/map/green-dot.png', label: '< Speedlimit' },
 					{ icon: 'textures/map/yellow-dot.png', label: '> Speedlimit' },  
-					{ icon: 'textures/map/red-dot.png', label: '> Speedlimit by 10 mph+' } ];
+					{ icon: 'textures/map/red-dot.png', label: '> Speedlimit by 10 ' + velocityUnit + '+' } ];
 
 	// Create a new legend control
 	var legend = document.createElement('div');
@@ -189,8 +194,8 @@ $(document).ready(function () {
             }
         } else if (event.data.action == 'SendClockData') {
             $('#speed').text(event.data.speed);
-            $('#range').text(event.data.range + 'ft');
-            $('#rangehud').text(event.data.range + 'ft');
+            $('#range').text(event.data.range + rangeUnit);
+            $('#rangehud').text(event.data.range + rangeUnit);
             $('#timer').text('');
             $('#lock').hide();
             $('#arrowup').hide();
@@ -230,6 +235,9 @@ $(document).ready(function () {
                 if (event.data.sound) {
                     playSound('LidarCalibration');
                 }
+				clearInterval(timerHandle);
+				$('#timer').text('');
+				$('#lock').hide();
             } else {
                 $('#lidar-home').hide();
                 $('#self-test-container').show();
@@ -255,9 +263,18 @@ $(document).ready(function () {
             clockVolume = event.data.clockSFX;
 			imgurApiKey = event.data.imgurApiKey;	
 			recordLimit = event.data.recordLimit;
-			version = event.data.version;
 			resourceName = event.data.name;
+			version = event.data.version;
 			$('#tablet-version').text('v'+version);
+			if (event.data.metric) {
+				speedFilters = metricSpeedFilters;
+				velocityUnit = 'kmh';
+				rangeUnit = 'm';
+			} else {
+				speedFilters = imperialSpeedFilters;
+				velocityUnit = 'mph';
+				rangeUnit = 'ft';
+			}
         } else if (event.data.action == 'SetHistoryState') {
             if (event.data.state) {
                 $('#lidar-home').hide();
@@ -284,7 +301,7 @@ $(document).ready(function () {
 				returnData.clock 	= $('#clock').text().replace('Speed Range: ', '');
 			} else {
 				returnData.speed = $('#speed').text();
-				returnData.range = $('#range').text().replace('ft', '');
+				returnData.range = $('#range').text().replace(rangeUnit, '');
 				if ($('#arrowup').is(':visible')){
 					returnData.arrow = 1;
 				} else if ($('#arrowdown').is(':visible')) {
@@ -298,7 +315,7 @@ $(document).ready(function () {
 			sendDataToLua('ReturnCurrentDisplayData', returnData);
 		} else if (event.data.action == 'SendPeersDisplayData') {
 			$('#speed').text(event.data.speed);
-            $('#range').text(event.data.range + 'ft');
+            $('#range').text(event.data.range + rangeUnit);
 			if ( event.data.arrow == 1){
 				$('#arrowup').show();
 				$('#arrowdown').hide();
@@ -310,7 +327,7 @@ $(document).ready(function () {
 				$('#arrowdown').hide();
 			}
 			$('#battery').attr('src', event.data.battery );
-			if (event.data.range != '----ft') {
+			if (event.data.range != '----' + rangeUnit) {
 				timer(event.data.elapsedTime);
 				console.log(event.data.elapsedTime)
 			}
@@ -575,7 +592,7 @@ function processRecords(playerName, databaseRecords){
 
 		
 		// Generate marker info window content
-		record.infoContent = '<b>RID: ' + record.rid + '</b><br>' + record.speed + 'mph<br>' + record.player;
+		record.infoContent = '<b>RID: ' + record.rid + '</b><br>' + record.speed + velocityUnit + '<br>' + record.player;
 		
 		// Is own record conditional marker formatting
 		if ( record.player == playerName ) {
@@ -640,26 +657,17 @@ function processRecords(playerName, databaseRecords){
 
 
 	$('#loading-message').html('<i class="fa fa-spinner fa-spin" aria-hidden="true"></i> Configuring Filters..');
-	// Table speed filter handling
-	$('#clock-table_filter').append(
-		'<div class="dropdown" style="float: left !important;">' +
-			'<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" style="height: 27px; line-height: 6px;"><i class="fa-solid fa-filter"></i> Speed Filter ' +
-			'<span class="caret"></span></button>' +
-			'<ul class="dropdown-menu">' +
-			'<li><a href="#" value="0" class="text-center">None</a></li>' +
-			'<li><a href="#" value="20" class="text-center">20mph</a></li>' +
-			'<li><a href="#" value="30" class="text-center">30mph</a></li>' +
-			'<li><a href="#" value="40" class="text-center">40mph</a></li>' +
-			'<li><a href="#" value="50" class="text-center">50mph</a></li>' +
-			'<li><a href="#" value="60" class="text-center">60mph</a></li>' +
-			'<li><a href="#" value="70" class="text-center">70mph</a></li>' +
-			'<li><a href="#" value="80" class="text-center">80mph</a></li>' +
-			'<li><a href="#" value="90" class="text-center">90mph</a></li>' +
-			'<li><a href="#" value="100" class="text-center">100mph</a></li>' +
-			'</ul>' +
-			'</div>' +
-			'</div>'
-	);
+	
+	// Table speed filter handling, Drop down creation.
+	var speedFilterDropdown = '<div class="dropdown" style="float: left !important;">' +
+			'<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" style="height: 27px; line-height: 6px;">' +
+			'<i class="fa-solid fa-filter"></i> Speed Filter <span class="caret"></span></button>' +
+			'<ul class="dropdown-menu">';
+	for (var i = 0; i < speedFilters.length; i++) {
+	  speedFilterDropdown += '<li><a href="#" value="' + speedFilters[i] + '" class="text-center">' + speedFilters[i] + velocityUnit + '</a></li>';
+	}
+	speedFilterDropdown += '</ul></div>';
+	$('#clock-table_filter').append(speedFilterDropdown);
 
 
 	// Table speed filter handling
@@ -808,7 +816,7 @@ function openPrintView(element) {
 
 	$('#recID').text(elementRecord.rid);
 	$('#recDate').text(elementRecord.timestamp);
-	$('#recSpeed').text(elementRecord.speed + ' mph');
+	$('#recSpeed').text(elementRecord.speed + ' ' + velocityUnit);
 	$('#recRange').text(elementRecord.range);
 	$('#recStreet').text(elementRecord.street);
 	

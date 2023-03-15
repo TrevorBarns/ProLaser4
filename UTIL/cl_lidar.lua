@@ -34,6 +34,16 @@ local fastScroll = 50
 local scrollWait = slowScroll
 local scrollDirection = nil
 
+local rangeScalar, velocityScalar
+-- Metric vs Imperial
+if cfg.useMetric then
+	rangeScalar = 1.0
+	velocityScalar = 3.6
+else
+	rangeScalar = 3.28084
+	velocityScalar = 2.236936
+end
+
 -- local function forward declarations
 local GetLidarReturn
 local CheckInputRotation, HandleZoom
@@ -438,9 +448,9 @@ GetLidarReturn = function(target, ped)
 	  diffHeading = 180 - diffHeading
 	end	
 	
-	range  = GetDistanceBetweenCoords(GetEntityCoords(ped),GetEntityCoords(target), true)*3.2808399
+	range  = GetDistanceBetweenCoords(GetEntityCoords(ped),GetEntityCoords(target), true)*rangeScalar
 	diffHeadingRadians = math.rad(diffHeading)
-	velocity = GetEntitySpeed(target)*2.236936
+	velocity = GetEntitySpeed(target)*velocityScalar
 
 	-- If diff abs heading > 45 degress zero out invalid angle
 	if diffHeading > 15 then

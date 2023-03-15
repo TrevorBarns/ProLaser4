@@ -21,7 +21,8 @@ function HUD:SendConfigData()
 		imgurApiKey = cfg.imgurApiKey,
 		recordLimit = cfg.loggingSelectLimit,
 		version = GetResourceMetadata(GetCurrentResourceName(), 'version', 0),
-		name = GetCurrentResourceName()
+		name = GetCurrentResourceName(),
+		metric = cfg.useMetric,
 	})
 end
 
