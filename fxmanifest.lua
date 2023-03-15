@@ -35,6 +35,7 @@ data_file 'WEAPONINFO_FILE' 'metas/weapons.meta'
 
 client_scripts {
 	'UTIL/cl_*.lua',
+	'UI/cl_*.lua',
 }
 
 server_scripts {
