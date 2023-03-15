@@ -17,8 +17,6 @@ cfg.previousHistory = 174
 --[[MISC CONFIGURATIONS]]
 cfg.performSelfTest = true
 --	On lidar first open perform a self-test sequence.
-cfg.lidarName = 'ProLaser 4'
---  Name to use for the Lidar weapon
 cfg.lidarGunHash = "WEAPON_PROLASER4"
 --	Lidar gun weapon string
 cfg.lidarGunTextureDict = "w_pi_prolaser4"
