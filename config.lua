@@ -19,6 +19,8 @@ cfg.useMetric = true
 --	Use metric kmh and meters instead of imperial mph and feet.
 cfg.performSelfTest = true
 --	On lidar first open perform a self-test sequence.
+cfg.lidarName = 'ProLaser 4'
+--  Name to use for the Lidar weapon
 cfg.lidarGunHash = "WEAPON_PROLASER4"
 --	Lidar gun weapon string
 cfg.lidarGunTextureDict = "w_pi_prolaser4"
