@@ -23,7 +23,7 @@ cfg.lidarGunHash = "WEAPON_PROLASER4"
 --	Lidar gun weapon string
 cfg.lidarGunTextureDict = "w_pi_prolaser4"
 --	Lidar gun weapon texture dictionary string
-cfg.lidarNameHashString = 'WT_PROLASER4'
+cfg.lidarNameHashString = "WT_PROLASER4"
 --	Hash name for label replacement located in weapons.meta.
 cfg.clockSFX = 0.02
 --	Sound effect volume when lidar is clocking (default: 0.02)
