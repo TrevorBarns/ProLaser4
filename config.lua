@@ -15,12 +15,20 @@ cfg.previousHistory = 174
 
 
 --[[MISC CONFIGURATIONS]]
+<<<<<<< Updated upstream
 cfg.useMetric = true
+=======
+cfg.useMetric = false
+>>>>>>> Stashed changes
 --	Use metric kmh and meters instead of imperial mph and feet.
 cfg.performSelfTest = true
 --	On lidar first open perform a self-test sequence.
 cfg.lidarName = 'ProLaser 4'
+<<<<<<< Updated upstream
 --	Name to use for the Lidar weapon
+=======
+--	Name to use for the Lidar weapon in weapon wheel
+>>>>>>> Stashed changes
 cfg.lidarGunHash = 'WEAPON_PROLASER4'
 --	Lidar gun weapon string
 cfg.lidarGunTextureDict = 'w_pi_prolaser4'

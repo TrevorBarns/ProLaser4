@@ -148,16 +148,11 @@ Citizen.CreateThread(function()
 	HUD:SendConfigData()
 
 	-- Texture load check & label replacement.
-	AddTextEntry(cfg.lidarNameHashString, "ProLaser 4")
+	AddTextEntry(cfg.lidarNameHashString, cfg.lidarName)
 	RequestStreamedTextureDict(cfg.lidarGunTextureDict)
 	while not HasStreamedTextureDictLoaded(cfg.lidarGunTextureDict) do
 		Wait(100)
 	end
-	
-	-- Replace weapon wheel textures.
-	local txd = CreateRuntimeTxd('prolaser4')
-	CreateRuntimeTextureFromImage(txd, 'weapons_dlc_bb', 'UI/weapons_dlc_bb.png')
-	AddReplaceTexture('hud', 'weapons_dlc_bb', 'prolaser4', 'weapons_dlc_bb')
 
 	while true do
 		ped = PlayerPedId()
