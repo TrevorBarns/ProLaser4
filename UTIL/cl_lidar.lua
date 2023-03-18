@@ -14,6 +14,7 @@ local inFirstPersonPed = true
 local fpAimDownSight = false
 local tpAimDownSight = false
 local ped, target
+local playerId = PlayerId()
 local targetHeading, pedHeading, towards
 local velocity, range, adjacentDistance, laneOffsetDistance, distSquared, speedEstimate
 local rangeAdjust = false
@@ -148,7 +149,7 @@ Citizen.CreateThread(function()
 	HUD:SendConfigData()
 
 	-- Texture load check & label replacement.
-	AddTextEntry(cfg.lidarNameHashString, cfg.lidarName)
+	AddTextEntry(cfg.lidarNameHashString, "ProLaser 4")
 	RequestStreamedTextureDict(cfg.lidarGunTextureDict)
 	while not HasStreamedTextureDictLoaded(cfg.lidarGunTextureDict) do
 		Wait(100)
@@ -159,7 +160,7 @@ Citizen.CreateThread(function()
 		holdingLidarGun = GetSelectedPedWeapon(ped) == lidarGunHash
 		if holdingLidarGun then
 			isInVehicle = IsPedInAnyVehicle(ped, true)
-			isAiming = IsPlayerFreeAiming(PlayerId())
+			isAiming = IsPlayerFreeAiming(playerId)
 			isGtaMenuOpen = IsWarningMessageActive() or IsPauseMenuActive()
 			Citizen.Wait(100)		
 		else
@@ -241,12 +242,12 @@ Citizen.CreateThread( function()
 
 		if holdingLidarGun then
 			-- toggle ADS if first person and aim, otherwise unADS
-			if not fpAimDownSight and IsControlJustPressed(0,25) and (inFirstPersonPed or inFirstPersonVeh) then
+			if not fpAimDownSight and IsUsingKeyboard(0) and IsControlJustPressed(0,25) and (inFirstPersonPed or inFirstPersonVeh) then
 				fpAimDownSight = true
-				SetPlayerForcedAim(PlayerId(), true)
-			elseif fpAimDownSight and (IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0) or not (inFirstPersonPed or inFirstPersonVeh)) then
+				SetPlayerForcedAim(playerId, true)
+			elseif fpAimDownSight and IsUsingKeyboard(0) and (IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0) or not (inFirstPersonPed or inFirstPersonVeh)) then
 				fpAimDownSight = false
-				SetPlayerForcedAim(PlayerId(), false)
+				SetPlayerForcedAim(playerId, false)
 				-- Simulate control just released, if still holding right click disable the control till they unclick to prevent retoggling accidently
 				while IsControlJustPressed(0,25) or IsDisabledControlPressed(0,25) or IsControlPressed(0,177) or IsDisabledControlPressed(0,177) do
 					DisableControlAction(0, 25, true)		-- INPUT_AIM
@@ -257,17 +258,17 @@ Citizen.CreateThread( function()
 				Wait(100)
 			elseif not fpAimDownSight and (inFirstPersonPed or inFirstPersonVeh) and isAiming then
 				fpAimDownSight = true
-				SetPlayerForcedAim(PlayerId(), true)
+				SetPlayerForcedAim(playerId, true)
 			end	
 			
 			-- toggle ADS if in third person and aim, otherwide unaim
 			if not (inFirstPersonPed or inFirstPersonVeh) then
-				if not tpAimDownSight and IsControlJustPressed(0,25) then
+				if not tpAimDownSight and IsUsingKeyboard(0) and IsControlJustPressed(0,25) then
 					tpAimDownSight = true
-					SetPlayerForcedAim(PlayerId(), true)
-				elseif tpAimDownSight and (IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0)) then
+					SetPlayerForcedAim(playerId, true)
+				elseif tpAimDownSight and IsUsingKeyboard(0) and (IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0)) then
 					tpAimDownSight = false
-					SetPlayerForcedAim(PlayerId(), false)
+					SetPlayerForcedAim(playerId, false)
 					-- Simulate control just released, if still holding right click disable the control till they unclick to prevent retoggling accidently
 					while IsControlJustPressed(0,25) or IsDisabledControlPressed(0,25) or IsControlPressed(0,177) or IsDisabledControlPressed(0,177) do
 						DisableControlAction(0, 25, true)		-- INPUT_AIM
@@ -277,10 +278,11 @@ Citizen.CreateThread( function()
 					end
 				end
 			end
+			
 			--	Get target speed and update display
-			if shown and not tempHidden and selfTestState then
-				if IsDisabledControlPressed(1, cfg.trigger) and not isHistoryActive and isAiming and not (tpAimDownSight and (GetGameplayCamRelativeHeading() < -131 or GetGameplayCamRelativeHeading() > 178)) then 
-					found, target = GetEntityPlayerIsFreeAimingAt(PlayerId())
+			if shown and not tempHidden then
+				if IsDisabledControlPressed(1, cfg.trigger) and IsUsingKeyboard(0) and not isHistoryActive and isAiming and not (tpAimDownSight and (GetGameplayCamRelativeHeading() < -131 or GetGameplayCamRelativeHeading() > 178)) then 
+					found, target = GetEntityPlayerIsFreeAimingAt(playerId)
 					if IsPedInAnyVehicle(target) then
 						target = GetVehiclePedIsIn(target, false)
 					end
@@ -293,7 +295,7 @@ Citizen.CreateThread( function()
 					end
 					Wait(250)
 				--	Hides history if on first, otherwise go to previous history
-				elseif IsDisabledControlPressed(0, cfg.previousHistory) and #HIST.history > 0 then
+				elseif IsDisabledControlPressed(0, cfg.previousHistory) and IsUsingKeyboard(0) and #HIST.history > 0 then
 					if isHistoryActive then
 						historyIndex = historyIndex - 1
 						if scrollWait == slowScroll then
@@ -308,7 +310,7 @@ Citizen.CreateThread( function()
 						end
 					end
 				-- Displays history if not shown, otherwise go to next history page.
-				elseif IsDisabledControlPressed(0, cfg.nextHistory) and #HIST.history > 0 then
+				elseif IsDisabledControlPressed(0, cfg.nextHistory) and IsUsingKeyboard(0) and #HIST.history > 0 then
 					isHistoryActive = true
 					HUD:SetHistoryState(isHistoryActive)
 					if historyIndex < #HIST.history then
@@ -319,11 +321,15 @@ Citizen.CreateThread( function()
 						HUD:SetHistoryData(historyIndex, HIST.history[historyIndex])
 						Wait(scrollWait)
 					end
-				elseif IsDisabledControlJustReleased(0, cfg.changeSight) and fpAimDownSight then
+				elseif IsDisabledControlJustReleased(0, cfg.changeSight) and IsUsingKeyboard(0) and fpAimDownSight then
 					HUD:ChangeSightStyle()
 				end
 			end
-		else
+		-- force unaim if no longer holding lidar gun
+		elseif tpAimDownSight or fpAimDownSight then
+			SetPlayerForcedAim(playerId, false)
+			tpAimDownSight = false
+			fpAimDownSight = false
 			Wait(500)
 		end
 	end
@@ -395,7 +401,7 @@ CreateThread(function()
 				while fpAimDownSight and not IsEntityDead(ped) do	
 					if ((camInVehicle and not isInVehicle) or (not camInVehicle and isInVehicle)) or not holdingLidarGun then
 						fpAimDownSight = false
-						SetPlayerForcedAim(PlayerId(), false)
+						SetPlayerForcedAim(playerId, false)
 						break
 					end
 					zoomvalue = (1.0/(cfg.maxFOV-cfg.minFOV))*(lidarFOV-cfg.minFOV)
@@ -524,4 +530,3 @@ PlayButtonPressBeep = function()
 	  file   = 'LidarBeep',
 	})
 end
-
