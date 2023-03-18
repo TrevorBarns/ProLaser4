@@ -48,6 +48,8 @@ New Lens Texture
 * [Server Sided Audio Tester](https://github.com/TrevorBarns/Server-Side-Audio-Tester)
 * [zScoreboard w/activity & ping](https://github.com/TrevorBarns/z-scoreboard)
 
+## Tier 2 Sponsors
+* [jojom2341](https://www.youtube.com/jojom2341)
 
 ## Credits:
 Lidar Gun Model & Textures by __Scaarus__! Thank you! 
