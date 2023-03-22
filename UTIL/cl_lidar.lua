@@ -280,7 +280,7 @@ Citizen.CreateThread( function()
 			end
 			
 			--	Get target speed and update display
-			if shown and not tempHidden then
+			if shown and not tempHidden and selfTestState then
 				if IsDisabledControlPressed(1, cfg.trigger) and IsUsingKeyboard(0) and not isHistoryActive and isAiming and not (tpAimDownSight and (GetGameplayCamRelativeHeading() < -131 or GetGameplayCamRelativeHeading() > 178)) then 
 					found, target = GetEntityPlayerIsFreeAimingAt(playerId)
 					if IsPedInAnyVehicle(target) then
@@ -330,6 +330,7 @@ Citizen.CreateThread( function()
 			SetPlayerForcedAim(playerId, false)
 			tpAimDownSight = false
 			fpAimDownSight = false
+		else
 			Wait(500)
 		end
 	end
@@ -451,7 +452,7 @@ GetLidarReturn = function(target, ped)
 	
 	range  = GetDistanceBetweenCoords(GetEntityCoords(ped),GetEntityCoords(target), true)*rangeScalar
 	diffHeadingRadians = math.rad(diffHeading)
-	velocity = GetEntitySpeed(target)*velocityScalar
+	speedEstimate = GetEntitySpeed(target)*velocityScalar
 
 	-- If diff abs heading > 45 degress zero out invalid angle
 	if diffHeading > 15 then
@@ -462,11 +463,11 @@ GetLidarReturn = function(target, ped)
 		end
 	end
 	
-	if velocity > 0 then
+	if speedEstimate > 0 then
 		adjacentDistance = range * math.cos(diffHeadingRadians)
 		laneOffsetDistance = range * math.sin(diffHeadingRadians)
 		distSquared = adjacentDistance^2 + laneOffsetDistance^2
-		speedEstimate = math.abs(math.floor(velocity * (adjacentDistance / math.sqrt(distSquared))-speedAdjust))
+		speedEstimate = math.abs(math.floor(speedEstimate * (adjacentDistance / math.sqrt(distSquared))-speedAdjust))
 	elseif range > 1800 then
 		return 0, 0, -1
 	end
