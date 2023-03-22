@@ -333,7 +333,6 @@ $(document).ready(function () {
 			$('#battery').attr('src', event.data.battery );
 			if (event.data.range != '----' + rangeUnit) {
 				timer(event.data.elapsedTime);
-				console.log(event.data.elapsedTime)
 			}
         } else if (event.data.action == 'SendDatabaseRecords') {
 			playerName = event.data.name;
@@ -409,7 +408,6 @@ String.prototype.toHHMMSS = function () {
 
 function timer( elapsedTime = 0 ) {
 	var start = Date.now() - elapsedTime
-	console.log(Date.now(), elapsedTime, start)
 	clearInterval(timerHandle);
     timerHandle = setInterval(function () {
         timerDelta = Date.now() - start; // milliseconds elapsed since start
