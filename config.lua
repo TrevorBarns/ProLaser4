@@ -48,7 +48,6 @@ cfg.displayControls = true
 
 --[[RECORD TABLET (SQL REQUIRED)]]
 cfg.logging = false
-cfg.logging = true
 --	Send logged clocks to the server for SQL storage.
 cfg.loggingPlayersOnly = false
 --	Require vehicle be driven by player to log.
