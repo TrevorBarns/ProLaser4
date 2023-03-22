@@ -219,6 +219,7 @@ $(document).ready(function () {
                 clearInterval(clockToneMute);
                 clockTone.vol.gain.exponentialRampToValueAtTime(0.00001,context.currentTime + 0.1
                 );
+				clearInterval(timerHandle);
             }
         } else if (event.data.action == 'SetDisplayMode') {
             if (event.data.mode == 'ADS') {
@@ -230,14 +231,14 @@ $(document).ready(function () {
             }
         } else if (event.data.action == 'SetSelfTestState') {
             if (event.data.state) {
+				clearInterval(timerHandle);
+				$('#timer').text('');
+				$('#lock').hide();
                 $('#lidar-home').show();
                 $('#self-test-container').hide();
                 if (event.data.sound) {
                     playSound('LidarCalibration');
                 }
-				clearInterval(timerHandle);
-				$('#timer').text('');
-				$('#lock').hide();
             } else {
                 $('#lidar-home').hide();
                 $('#self-test-container').show();
