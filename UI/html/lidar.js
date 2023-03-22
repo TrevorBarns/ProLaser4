@@ -268,8 +268,11 @@ $(document).ready(function () {
 			$('#tablet-version').text('v'+version);
 			if (event.data.metric) {
 				speedFilters = metricSpeedFilters;
-				velocityUnit = 'kmh';
+				velocityUnit = 'km/h';
 				rangeUnit = 'm';
+				$('#unit').text(velocityUnit)
+				$('.speed').html('Speed<br>(' + velocityUnit + ')')
+				$('.distance').html('Distance<br>(' + rangeUnit + ')')
 			} else {
 				speedFilters = imperialSpeedFilters;
 				velocityUnit = 'mph';
