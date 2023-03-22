@@ -50,7 +50,7 @@ end
 
 -- Send clear lidar strings
 function HUD:ClearLidarDisplay()
-	self:SendLidarUpdate('0', '----', -1)
+	self:SendLidarUpdate('---', '----', -1)
 end
 
 -- Send change scope style
