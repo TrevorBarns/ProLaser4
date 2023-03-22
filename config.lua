@@ -15,23 +15,13 @@ cfg.previousHistory = 174
 
 
 --[[MISC CONFIGURATIONS]]
-<<<<<<< Updated upstream
-cfg.useMetric = true
-=======
 cfg.useMetric = false
->>>>>>> Stashed changes
 --	Use metric kmh and meters instead of imperial mph and feet.
 cfg.performSelfTest = true
 --	On lidar first open perform a self-test sequence.
-cfg.lidarName = 'ProLaser 4'
-<<<<<<< Updated upstream
---	Name to use for the Lidar weapon
-=======
---	Name to use for the Lidar weapon in weapon wheel
->>>>>>> Stashed changes
-cfg.lidarGunHash = 'WEAPON_PROLASER4'
+cfg.lidarGunHash = "WEAPON_PROLASER4"
 --	Lidar gun weapon string
-cfg.lidarGunTextureDict = 'w_pi_prolaser4'
+cfg.lidarGunTextureDict = "w_pi_prolaser4"
 --	Lidar gun weapon texture dictionary string
 cfg.lidarNameHashString = 'WT_PROLASER4'
 --	Hash name for label replacement located in weapons.meta.
@@ -53,10 +43,12 @@ cfg.horizontalPanSpeed = 10.0
 cfg.verticalPanSpeed = 10.0
 --	Speed at which to pan camera up-down (default: 10.0)
 cfg.displayControls = true
+--	Shows scope style and ADS toggle controls in top left on first ADS.
 
 
 --[[RECORD TABLET (SQL REQUIRED)]]
 cfg.logging = false
+cfg.logging = true
 --	Send logged clocks to the server for SQL storage.
 cfg.loggingPlayersOnly = false
 --	Require vehicle be driven by player to log.
