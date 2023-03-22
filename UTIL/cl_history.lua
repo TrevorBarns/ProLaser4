@@ -10,6 +10,7 @@ local savePrefix = 'prolaser4_'
 local pendingChanges = false
 local selfTestTimestamp = nil
 local waitingForServer = false
+local lastLoggedTarget
 
 -- local function forward declarations
 local GetTimeString, PadTime, CorrectHour
@@ -22,32 +23,35 @@ RegisterCommand('lidarwipe', function(source, args)
 end)
 TriggerEvent('chat:addSuggestion', '/lidarwipe', 'Deletes history data.')
 
+if cfg.logging then
 -- MANUAL SAVE COMMAND
-RegisterCommand('lidarupload', function(source, args)
-	TriggerServerEvent('prolaser4:SendLogData', HIST.loggedHistory)
-	HIST.loggedHistory = { }
-end)
-TriggerEvent('chat:addSuggestion', '/lidarupload', 'Manually upload lidar event data to server.')
+	RegisterCommand('lidarupload', function(source, args)
+		print('uploading', json.encode(HIST.loggedHistory))
+		TriggerServerEvent('prolaser4:SendLogData', HIST.loggedHistory)
+		HIST.loggedHistory = { }
+	end)
+	TriggerEvent('chat:addSuggestion', '/lidarupload', 'Manually upload lidar event data to server.')
 
---	RECORDS INTERFACE
-RegisterCommand('lidarrecords', function(source, args)
-	waitingForServer = true
-	TriggerServerEvent('prolaser4:GetLogData')
-	Wait(5000)
-	if waitingForServer then
-		HUD:ShowNotification("~r~Error~s~: Database timed out, check server console.")
-		TriggerServerEvent('prolaser4:DatabaseTimeout')
-	end
-end)
-TriggerEvent('chat:addSuggestion', '/lidarrecords', 'Review lidar records.')
+	--	RECORDS INTERFACE
+	RegisterCommand('lidarrecords', function(source, args)
+		waitingForServer = true
+		TriggerServerEvent('prolaser4:GetLogData')
+		Wait(5000)
+		if waitingForServer then
+			HUD:ShowNotification("~r~Error~s~: Database timed out, check server console.")
+			TriggerServerEvent('prolaser4:DatabaseTimeout')
+		end
+	end)
+	TriggerEvent('chat:addSuggestion', '/lidarrecords', 'Review lidar records.')
 
---	[[EVENTS]]
-RegisterNetEvent("prolaser4:ReturnLogData")
-AddEventHandler("prolaser4:ReturnLogData", function(databaseData)
-	waitingForServer = false
-	HUD:SendDatabaseRecords(databaseData)
-	HUD:SetTabletState(true)
-end)
+	--	[[EVENTS]]
+	RegisterNetEvent("prolaser4:ReturnLogData")
+	AddEventHandler("prolaser4:ReturnLogData", function(databaseData)
+		waitingForServer = false
+		HUD:SendDatabaseRecords(databaseData)
+		HUD:SetTabletState(true)
+	end)
+end
 
 --	[[THREADS]]
 --	SAVE/LOAD HISTORY THREAD: saves history if it's been changed every 5 minutes.
@@ -92,43 +96,66 @@ function HIST:StoreLidarData(target, speed, range, towards)
 			self.history[1].clock = clockString
 			self.history[1].time = GetTimeString()
 		end
-		return
+	else
+		-- different vehicle, store data in table and add
+		local data = { 	target = target, 
+						speed = speed,
+						time = GetTimeString(),
+						clock = clockString,
+					}
+		-- clear old history items FIFO (first-in-first-out)
+		while #self.history > 99 do
+			table.remove(self.history, 100)
+		end
+		table.insert(self.history, 1, data)
 	end
-	-- different vehicle, store data in table and add
-	local data = { 	target = target, 
-					speed = speed,
-					time = GetTimeString(),
-					clock = clockString,
-				}
-	-- clear old history items FIFO (first-in-first-out)
-	while #self.history > 99 do
-		table.remove(self.history, 100)
-	end
-	table.insert(self.history, 1, data)
 	
 	-- logging data
 	if cfg.logging then
-		local loggedData = { }
-		if not cfg.loggingPlayersOnly or IsPedAPlayer(GetPedInVehicleSeat(veh, -1)) then
-			loggedData['speed'] = speed
-			loggedData['range'] = string.format("%03.1f", range)
-			loggedData['time'] = GetTimeString()
-			local targetPos = GetEntityCoords(target)
-			loggedData['targetX'] = targetPos.x
-			loggedData['targetY'] = targetPos.y
-			loggedData['selfTestTimestamp'] = selfTestTimestamp
+		if lastLoggedTarget ~= target then
+			local loggedData = { }
+			if not cfg.loggingPlayersOnly or IsPedAPlayer(GetPedInVehicleSeat(target, -1)) then
+				loggedData['speed'] = speed
+				loggedData['range'] = string.format("%03.1f", range)
+				loggedData['time'] = GetTimeString()
+				local targetPos = GetEntityCoords(target)
+				loggedData['targetX'] = targetPos.x
+				loggedData['targetY'] = targetPos.y
+				loggedData['selfTestTimestamp'] = selfTestTimestamp
 
-			local streetHash1, streetHash2 = GetStreetNameAtCoord(targetPos.x, targetPos.y, targetPos.z, Citizen.ResultAsInteger(), Citizen.ResultAsInteger())
-			local streetName1 = GetStreetNameFromHashKey(streetHash1)
-			local streetName2 = GetStreetNameFromHashKey(streetHash2)
-			
-			if not cfg.loggingSpeedersOnly or speed > speedLimits[streetName1] then
+				local streetHash1, streetHash2 = GetStreetNameAtCoord(targetPos.x, targetPos.y, targetPos.z, Citizen.ResultAsInteger(), Citizen.ResultAsInteger())
+				local streetName1 = GetStreetNameFromHashKey(streetHash1)
+				local streetName2 = GetStreetNameFromHashKey(streetHash2)
+				if not cfg.loggingOnlySpeeders or speed > speedLimits[streetName1] then
+					if streetName2 == "" then
+						loggedData['street'] = streetName1
+					else
+						loggedData['street'] = string.format("%s / %s", streetName1, streetName2)
+					end
+					lastLoggedTarget = target
+					table.insert(self.loggedHistory, 1, loggedData)
+				end
+			end
+		else
+			-- Update pending data to reflect higher clock.
+			local loggedData = self.loggedHistory[1]
+			if speed > loggedData['speed'] then
+				loggedData['speed'] = speed
+				loggedData['range'] = string.format("%03.1f", range)
+				loggedData['time'] = GetTimeString()
+				local targetPos = GetEntityCoords(target)
+				loggedData['targetX'] = targetPos.x
+				loggedData['targetY'] = targetPos.y
+				loggedData['selfTestTimestamp'] = selfTestTimestamp
+
+				local streetHash1, streetHash2 = GetStreetNameAtCoord(targetPos.x, targetPos.y, targetPos.z, Citizen.ResultAsInteger(), Citizen.ResultAsInteger())
+				local streetName1 = GetStreetNameFromHashKey(streetHash1)
+				local streetName2 = GetStreetNameFromHashKey(streetHash2)
 				if streetName2 == "" then
 					loggedData['street'] = streetName1
 				else
 					loggedData['street'] = string.format("%s / %s", streetName1, streetName2)
 				end
-				table.insert(self.loggedHistory, loggedData)
 			end
 		end
 	end
