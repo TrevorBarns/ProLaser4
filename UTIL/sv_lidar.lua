@@ -23,7 +23,7 @@ if cfg.logging and MySQL ~= nil then
 		INSERT INTO prolaser4 
 			(timestamp, speed, distance, targetX, targetY, player, street, selfTestTimestamp) 
 		VALUES 
-			(STR_TO_DATE(?, "%m/%d/%Y %H:%i"), ?, ?, ?, ?, ?, ?, STR_TO_DATE(?, "%m/%d/%Y %H:%i"))
+			(STR_TO_DATE(?, "%m/%d/%Y %H:%i:%s"), ?, ?, ?, ?, ?, ?, STR_TO_DATE(?, "%m/%d/%Y %H:%i:%s"))
 	]]
 	local selectQueryRaw = [[
 			SELECT 
@@ -121,7 +121,7 @@ if cfg.logging and MySQL ~= nil then
 	function SelectRecordsFromSQL(source)
 		DebugPrint(string.format('^3[INFO]: Getting records for %s.^7', GetPlayerName(source)))
 		MySQL.query(selectQuery, {}, function(result)
-			DebugPrint(string.format('^3[INFO]: Returned %s from select query.^7', result))
+			DebugPrint(string.format('^3[INFO]: Returned %s from select query.^7', #result))
 			if result then
 				TriggerClientEvent('prolaser4:ReturnLogData', source, result)
 			end
@@ -139,9 +139,7 @@ if cfg.logging and MySQL ~= nil then
 	function CleanUpRecordsFromSQL()
 		DebugPrint('^3[INFO]: Removing old records.^7');
 		MySQL.query(cleanupQuery, {cfg.loggingCleanUpInterval}, function(returnData)
-			if returnData.affectedRows > 0 then
-				DebugPrint(string.format('^3[INFO]: Removed %s records (older than %s days)^7', rowsAffected, cfg.loggingCleanUpInterval));
-			end
+			DebugPrint(string.format('^3[INFO]: Removed %s records (older than %s days)^7', returnData.affectedRows, cfg.loggingCleanUpInterval));
 		end)
 	end
 	
