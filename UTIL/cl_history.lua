@@ -26,7 +26,6 @@ TriggerEvent('chat:addSuggestion', '/lidarwipe', 'Deletes history data.')
 if cfg.logging then
 -- MANUAL SAVE COMMAND
 	RegisterCommand('lidarupload', function(source, args)
-		print('uploading', json.encode(HIST.loggedHistory))
 		TriggerServerEvent('prolaser4:SendLogData', HIST.loggedHistory)
 		HIST.loggedHistory = { }
 	end)
