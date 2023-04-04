@@ -48,8 +48,10 @@ if cfg.logging and MySQL ~= nil then
 	RegisterCommand('lidarsqlupdate', function(source, args)
 		-- check if from server console
 		if source == 0 then
+			DebugPrint('^3[INFO]: Manually inserting records to SQL.^7')
 			InsertRecordsToSQL()
 		else
+			DebugPrint(string.format('^3[INFO]: Attempted to manually insert records but got source %s.^7', source))
 			TriggerClientEvent('chat:addMessage', source, { args = { '^1Error', 'This command can only be executed from the console.' } })
 		end
 	end)
