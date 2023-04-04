@@ -805,7 +805,7 @@ function openPrintView(element) {
 		$('#serial').text(serial);
 	}
 	
-	$('#playerName').text(playerName);
+	$('#playerName').text(elementRecord.player);
 	if(elementRecord.selfTestTimestamp != "00/00/0000 00:00") {
 		$('#self-test-time').text(elementRecord.selfTestTimestamp);
 		$('.testResult').addClass('pass');
