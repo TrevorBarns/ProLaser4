@@ -66,7 +66,7 @@ function HUD:DisplaySelfTest()
 	local wait2 = math.random(150,750)
 	local wait3 = math.random(7,10)*100
 	CreateThread(function()
-		SendNUIMessage({ action = "SetSelfTestState", state = false })
+		HUD:SetSelfTestState(false, false)
 		Wait(1000)
 		SendNUIMessage({action = "SendSelfTestProgress", progress = "[|||________________]" })
 		Wait(wait1)
@@ -81,17 +81,15 @@ function HUD:DisplaySelfTest()
 		SendNUIMessage({ action = "SendSelfTestProgress", progress = "TIMER    =   PASS" })
 		Wait(2000)
 		SendNUIMessage({ action = "SendSelfTestProgress", progress = "CHECKSUM =   PASS" })
-		Wait(2000)
-		SendNUIMessage({ action = "SetSelfTestState", state = true, sound = true })
-		Wait(500)
-		self:ClearLidarDisplay()
-		selfTestState = true
+		Wait(2500)
+		HUD:SetSelfTestState(true, true)
 	end)
 end
 
 -- Handles initialization of self-test state
 function HUD:SetSelfTestState(state, playSound)
-	SendNUIMessage({ action = "SetSelfTestState", state = state, sound = playSound })
+	selfTestState = state
+	SendNUIMessage({ action = "SetSelfTestState", state = selfTestState, sound = playSound })
 	if state then
 		HIST:SetSelfTestTimestamp()
 		HUD:ClearLidarDisplay()
