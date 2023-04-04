@@ -6,12 +6,12 @@ lua54 'on'
 author 'Trevor Barns'
 description 'Lidar Resource.'
 
-version '1.0.1'			-- Readonly version of currently installed version.
+version '1.0.0'						-- Readonly version of currently installed version.
 ------------------------------
 ui_page('UI/html/index.html')
 
 dependencies {
-    -- 'oxmysql',		-- uncomment for persistent records & record management tablet. See docs and configs.
+    -- 'oxmysql',					-- uncomment for persistent records & record management tablet. See docs and configs.
 }
 
 files {
@@ -34,8 +34,8 @@ data_file 'PED_PERSONALITY_FILE' 'metas/pedpersonality.meta'
 data_file 'WEAPONINFO_FILE' 'metas/weapons.meta'
 
 client_scripts {
-	'UTIL/cl_*.lua',
 	'UI/cl_*.lua',
+	'UTIL/cl_*.lua',
 }
 
 server_scripts {
