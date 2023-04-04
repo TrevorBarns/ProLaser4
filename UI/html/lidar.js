@@ -106,7 +106,6 @@ $(document).ready(function () {
 				$('#tablet').fadeIn();
 				$('.printViewHeader').css('opacity', '1');
 				$('#view-record').removeClass('no-border');
-				$('.legend-wrapper').show();
 			}, 1000)
 		} else {
 			$('#copyButton').hide();
@@ -121,6 +120,7 @@ $(document).ready(function () {
 		  zoomControl: true,
 		});
 		$('#view-record-container').fadeOut();
+		$('.legend-wrapper').show();
 		updateMarkers();
 	});
 	
