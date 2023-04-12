@@ -166,6 +166,7 @@ body {
     padding: 0px;
 	position: absolute;
     margin: 32px 0px 0px 0px;
+	box-shadow: rgb(27 255 0 / 78%) 0px 0px 12px, rgb(16 255 0 / 50%) 0px 0px 44px;
 }
 
 #lasergun {
