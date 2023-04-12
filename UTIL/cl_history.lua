@@ -66,6 +66,8 @@ CreateThread(function()
 	while true do
 		Wait(60000)
 		if pendingChanges then
+			-- as the data is being pushed, we don't want to attempt to update loggedData since it's being uploaded and emptied
+			lastLoggedTarget = nil
 			SetResourceKvp(savePrefix .. 'history', json.encode(HIST.history))
 			
 			if cfg.logging and #HIST.loggedHistory > 0 then
@@ -111,9 +113,9 @@ function HIST:StoreLidarData(target, speed, range, towards)
 	
 	-- logging data
 	if cfg.logging then
-		if lastLoggedTarget ~= target then
-			local loggedData = { }
-			if not cfg.loggingPlayersOnly or IsPedAPlayer(GetPedInVehicleSeat(target, -1)) then
+		if not cfg.loggingPlayersOnly or IsPedAPlayer(GetPedInVehicleSeat(target, -1)) then
+			if lastLoggedTarget ~= target then
+				local loggedData = { }
 				loggedData['speed'] = speed
 				loggedData['range'] = string.format("%03.1f", range)
 				loggedData['time'] = GetTimeString()
@@ -133,32 +135,34 @@ function HIST:StoreLidarData(target, speed, range, towards)
 					end
 					lastLoggedTarget = target
 					table.insert(self.loggedHistory, 1, loggedData)
+					pendingChanges = true
 				end
-			end
-		else
-			-- Update pending data to reflect higher clock.
-			local loggedData = self.loggedHistory[1]
-			if speed > loggedData['speed'] then
-				loggedData['speed'] = speed
-				loggedData['range'] = string.format("%03.1f", range)
-				loggedData['time'] = GetTimeString()
-				local targetPos = GetEntityCoords(target)
-				loggedData['targetX'] = targetPos.x
-				loggedData['targetY'] = targetPos.y
-				loggedData['selfTestTimestamp'] = selfTestTimestamp
+			else
+				-- Update pending data to reflect higher clock.
+				local loggedData = self.loggedHistory[1]
+				if loggedData ~= nil and loggedData['speed'] ~= nil then
+                    if speed > loggedData['speed'] then
+                        loggedData['speed'] = speed
+                        loggedData['range'] = string.format("%03.1f", range)
+                        loggedData['time'] = GetTimeString()
+                        local targetPos = GetEntityCoords(target)
+                        loggedData['targetX'] = targetPos.x
+                        loggedData['targetY'] = targetPos.y
+                        loggedData['selfTestTimestamp'] = selfTestTimestamp
 
-				local streetHash1, streetHash2 = GetStreetNameAtCoord(targetPos.x, targetPos.y, targetPos.z, Citizen.ResultAsInteger(), Citizen.ResultAsInteger())
-				local streetName1 = GetStreetNameFromHashKey(streetHash1)
-				local streetName2 = GetStreetNameFromHashKey(streetHash2)
-				if streetName2 == "" then
-					loggedData['street'] = streetName1
-				else
-					loggedData['street'] = string.format("%s / %s", streetName1, streetName2)
+                        local streetHash1, streetHash2 = GetStreetNameAtCoord(targetPos.x, targetPos.y, targetPos.z, Citizen.ResultAsInteger(), Citizen.ResultAsInteger())
+                        local streetName1 = GetStreetNameFromHashKey(streetHash1)
+                        local streetName2 = GetStreetNameFromHashKey(streetHash2)
+                        if streetName2 == "" then
+                            loggedData['street'] = streetName1
+                        else
+                            loggedData['street'] = string.format("%s / %s", streetName1, streetName2)
+                        end
+                   end
 				end
 			end
 		end
 	end
-	pendingChanges = true
 end
 
 -- [[ GLOBAL FUNCTIONS ]]
