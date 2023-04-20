@@ -18,6 +18,7 @@ local GetTimeString, PadTime, CorrectHour
 -- CLEAR SAVED DATA / KVPS
 RegisterCommand('lidarwipe', function(source, args)
 	DeleteResourceKvp(savePrefix .. 'history')
+	HUD:ShowNotification("~g~Success~s~: wiped local save data. Please restart for changes to take effect.")
 end)
 TriggerEvent('chat:addSuggestion', '/lidarwipe', 'Deletes history data.')
 
@@ -27,7 +28,7 @@ if cfg.logging then
 		TriggerServerEvent('prolaser4:SendLogData', HIST.loggedHistory)
 		HIST.loggedHistory = { }
 	end)
-	TriggerEvent('chat:addSuggestion', '/lidarupload', 'Manually upload lidar event data to server.')
+	TriggerEvent('chat:addSuggestion', '/lidarupload', 'Manually upload lidar event data to server. (debugging purposes)')
 
 	--	RECORDS INTERFACE
 	RegisterCommand('lidarrecords', function(source, args)
