@@ -6,6 +6,12 @@ AddEventHandler('prolaser4:SendDisplayData', function(target, data)
 	TriggerClientEvent('prolaser4:ReturnDisplayData', target, data)
 end)
 
+--	Database timeout event from client->server for server console log.
+RegisterServerEvent('prolaser4:DatabaseTimeout')
+AddEventHandler('prolaser4:DatabaseTimeout', function()
+	print(string.format('^8[ERROR]: ^3Database timed out for %s after 5 seconds. Lidar records tablet unavailable.\n\t\t1) Ensure your database is online\n\t\t2) restart oxmysql.^7', GetPlayerName(source)))
+end)
+
 function DebugPrint(text)
 	if cfg.serverDebugging then
 		print(text)
@@ -129,13 +135,7 @@ if cfg.logging and MySQL ~= nil then
 			end
 		end)
 	end
-
-	--	Database timeout event from client->server for server console log.
-	RegisterServerEvent('prolaser4:DatabaseTimeout')
-	AddEventHandler('prolaser4:DatabaseTimeout', function()
-		print(string.format('^8[ERROR]: ^3Database timed out for %s after 5 seconds.\n\t\t1) Ensure your database is online\n\t\t2) restart oxmysql.^7', GetPlayerName(source)))
-	end)
-
+	
 	------------------ AUTO CLEANUP -----------------
 	--	Remove old records after X days old.
 	function CleanUpRecordsFromSQL()
@@ -173,7 +173,7 @@ CreateThread( function()
 	
 	if cfg.logging then
 		if MySQL == nil then
-			print('^3[ERROR]: logging enabled, but oxmysql not found, did you uncomment the oxmysql lines in fxmanifest.lua.\n\t\tRemember, changes to fxmanifest are only loaded after running `refresh`, then `restart`.^7')
+			print('^3[WARNING]: logging enabled, but oxmysql not found. Did you uncomment the oxmysql\n\t\t  lines in fxmanifest.lua?\n\n\t\t  Remember, changes to fxmanifest are only loaded after running `refresh`, then `restart`.^7')
 		else
 			recordCount = GetRecordCount()
 		end
