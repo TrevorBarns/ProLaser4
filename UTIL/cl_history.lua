@@ -17,9 +17,7 @@ local GetTimeString, PadTime, CorrectHour
 --	[[COMMANDS]]
 -- CLEAR SAVED DATA / KVPS
 RegisterCommand('lidarwipe', function(source, args)
-	SetResourceKvp(savePrefix .. 'history', json.encode(HIST.history))
 	DeleteResourceKvp(savePrefix .. 'history')
-	SetResourceKvp(savePrefix .. 'history', json.encode(HIST.history))
 end)
 TriggerEvent('chat:addSuggestion', '/lidarwipe', 'Deletes history data.')
 
@@ -158,7 +156,7 @@ function HIST:StoreLidarData(target, speed, range, towards)
                         else
                             loggedData['street'] = string.format("%s / %s", streetName1, streetName2)
                         end
-                   end
+				   end
 				end
 			end
 		end
