@@ -9,7 +9,7 @@ end)
 --	Database timeout event from client->server for server console log.
 RegisterServerEvent('prolaser4:DatabaseTimeout')
 AddEventHandler('prolaser4:DatabaseTimeout', function()
-	print(string.format('^8[ERROR]: ^3Database timed out for %s after 5 seconds. Lidar records tablet unavailable.\n\t\t1) Ensure your database is online\n\t\t2) restart oxmysql.^7', GetPlayerName(source)))
+	print(string.format('^8[ERROR]: ^3Database timed out for %s after 5 seconds. Lidar records tablet unavailable.\n\t\t1) Ensure your database is online.\n\t\t2) restart oxmysql.\n\t\t3) restart ProLaser4.^7', GetPlayerName(source)))
 end)
 
 function DebugPrint(text)
@@ -174,6 +174,7 @@ CreateThread( function()
 	if cfg.logging then
 		if MySQL == nil then
 			print('^3[WARNING]: logging enabled, but oxmysql not found. Did you uncomment the oxmysql\n\t\t  lines in fxmanifest.lua?\n\n\t\t  Remember, changes to fxmanifest are only loaded after running `refresh`, then `restart`.^7')
+			recordCount = '^8NO CONNECTION^7'
 		else
 			recordCount = GetRecordCount()
 		end
@@ -190,7 +191,11 @@ CreateThread( function()
 	print(('\t|\t           INSTALLED: %-26s|'):format(currentVersion))
 	print(('\t|\t              LATEST: %-26s|'):format(repoVersion))
 	if cfg.logging then
-		print(('\t|\t        RECORD COUNT: %-26s|'):format(recordCount))
+		if type(recordCount) == 'number' then
+			print(('\t|\t        RECORD COUNT: %-26s|'):format(recordCount))
+		else
+			print(('\t|\t        RECORD COUNT: %-30s|'):format(recordCount))
+		end
 	end
 	if currentVersion < repoVersion then
 		print('\t^7|_______________________________________________________|')
