@@ -8,7 +8,7 @@
 
 ### Features
 * Reticle / HUD for first person aim down sight.
-* History / Recalled Events menu for viewing previous clocks. Persistant across relogs.
+* History / Recalled Events menu for viewing previous clocks. Persistent across relogs.
 * Accurate on onscreen recreation of ProLaser4 rear display.
 * Audible feedback.
 
