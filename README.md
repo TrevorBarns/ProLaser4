@@ -35,6 +35,25 @@ Simulated HUD
 Sniper HUD
 </p>
 <p align="center">
+<img align="center" width="600" src="https://i.imgur.com/6M5jkDz.png">
+</p>
+<p align="center">
+Lidar Records Tablet
+</p>
+<p align="center">
+<img align="center" width="600" src="https://i.imgur.com/gB4q1Mv.png">
+</p>
+<p align="center">
+Lidar Record Print View
+</p>
+<p align="center">
+<img align="center" width="600" src="https://i.imgur.com/W5kkOcu.png">
+</p>
+<p align="center">
+Lidar Record Print Dialog
+</p>
+
+<p align="center">
 <img align="center" width="600" src="https://i.imgur.com/2bc7C65.png">
 </p>
 <p align="center">
