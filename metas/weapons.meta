@@ -276,7 +276,7 @@
 					<ReticuleScale value="0.300000" />
 					<ReticuleStyleHash>WEAPON_PISTOL</ReticuleStyleHash>
 					<FirstPersonReticuleStyleHash />
-					<PickupHash>PICKUP_WEAPON_PROLASER4</PickupHash>
+					<PickupHash>PICKUP_WEAPON_VINTAGEPISTOL</PickupHash>
 					<MPPickupHash>PICKUP_AMMO_BULLET_MP</MPPickupHash>
 					<HumanNameHash>WT_PROLASER4</HumanNameHash>
 					<MovementModeConditionalIdle>MMI_1Handed</MovementModeConditionalIdle>
