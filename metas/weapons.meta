@@ -284,30 +284,7 @@
 					<KnockdownCount value="3" />
 					<KillshotImpulseScale value="1.000000" />
 					<NmShotTuningSet>normal</NmShotTuningSet>
-					<AttachPoints>
-						<Item>
-							<AttachBone>WAPClip</AttachBone>
-							<Components>
-								<Item>
-									<Name>COMPONENT_PROLASER4_CLIP_01</Name>
-									<Default value="true" />
-								</Item>
-								<Item>
-									<Name>COMPONENT_PROLASER4_CLIP_02</Name>
-									<Default value="false" />
-								</Item>
-							</Components>
-						</Item>
-						<Item>
-							<AttachBone>WAPSupp_2</AttachBone>
-							<Components>
-								<Item>
-									<Name>COMPONENT_AT_PI_SUPP</Name>
-									<Default value="false" />
-								</Item>
-							</Components>
-						</Item>
-					</AttachPoints>
+					<AttachPoints />
 					<GunFeedBone />
 					<TargetSequenceGroup>Pistol</TargetSequenceGroup>
 					<WeaponFlags>CarriedInHand Gun CanLockonOnFoot CanLockonInVehicle CanFreeAim UsableOnFoot HasLowCoverSwaps QuitTransitionToIdleIntroOnWeaponChange DisableLeftHandIkWhenOnFoot TorsoIKForWeaponBlock UseFPSAimIK UseFPSSecondaryMotion NonViolent NoWheelStats DisableCombatRoll DisableStealth</WeaponFlags>
