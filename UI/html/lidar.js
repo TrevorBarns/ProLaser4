@@ -409,11 +409,13 @@ $(document).ready(function () {
 				lidarOsd.style.bottom = "2%";
 				lidarOsd.style.left = "60%";
 				lidarOsd.style.transform = "scale(0.65)";
+				ReturnOsdStyle()
+			} else {
+				lidarOsd.addEventListener("wheel", handleScrollResize);
+				lidarOsd.addEventListener("mousedown", dragMouseDown);
+				moveMode = true;
+				$('#laser-gun').css('pointer-events', 'all');
 			}
-			lidarOsd.addEventListener("wheel", handleScrollResize);
-			lidarOsd.addEventListener("mousedown", dragMouseDown);
-			moveMode = true;
-			$('#laser-gun').css('pointer-events', 'all');
 		}
     });
 });
