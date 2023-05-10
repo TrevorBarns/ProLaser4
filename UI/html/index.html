@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="style.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.2/css/jquery.dataTables.min.css"/>
+	<link rel="stylesheet" id="theme" href=""/>
 	<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
 	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF6OI8FdmtZmgrTsh1yTa__UlwA52BGEQ"></script>
@@ -16,10 +17,10 @@
 </head>
 <body>
 <div id="hud">
-	<p id='rangehud'>WAIT</</p>
-	<p id='speedhud'>TESTING</p>
+	<p id='range-hud'>WAIT</</p>
+	<p id='speed-hud'>TESTING</p>
 </div>
-<div id="lasergun">
+<div id="laser-gun">
 	<img src="textures/screen.png" style="position: absolute; top: 34%; right: 18%; width: 408px; height: 103px; transform-origin: center; offset-anchor: center; z-index: 2; opacity: 0.15;">
 	<img src="textures/grid.png" style="position: absolute; top: 32%; right: 17%; width: 403px; height: 103px; offset-anchor: center; z-index: 1; opacity: 0.5; margin: 6px;">
 	<div id="self-test-container">
@@ -34,7 +35,7 @@
 			<p id="speed">---</p>
 			<p id="unit">mph</p>
 		</div>
-		<div id="verticaldiv"></div>
+		<div id="vertical-div"></div>
 		<div id="right">
 			<p id="range">----ft</p>
 			<p id="timer"></p>
@@ -54,19 +55,20 @@
 	<div id="print-result-dialog">
 		<div class='dialog-body'>
 			<div class="bg-primary fixedhd dialog-header">
-			  <button id="closePrintDialog" class="btn btn-danger printViewCloseBtn"><i class="fas fa-sign-out-alt"></i></button>
+			  <button id="print-dialog-close" class="btn btn-danger print-view-close-btn"><i class="fas fa-sign-out-alt"></i></button>
 			</div>
-			<p id="dialogMsg" class="center" style="text-shadow: unset;margin-bottom: 0px;">Uploaded Successfully</p>
-			<p id="urlDisplay" class="center" style="margin-bottom: 15px; text-shadow: unset;"></p>
-			<button id="copyButton" class="btn btn-success dialogButton">Copy to Clipboard</button>
+			<p id="dialog-msg" class="center" style="text-shadow: unset;margin-bottom: 0px;">Uploaded Successfully</p>
+			<p id="url-display-imgur" class="center" style="text-shadow: unset; margin-bottom: 0px; margin-top: 10px;"></p>
+			<p id="url-display-discord" class="center" style="margin-bottom: 15px; text-shadow: unset;"></p>
+			<button id="copy-button" class="btn btn-success dialog-button">Copy to Clipboard</button>
 		</div>
 	</div>
 </div>
 <div id="view-record-container" class="centered-container" style="z-index: 10;">
 	<div id="view-record">
-		<div class="bg-primary fixedhd printViewHeader">
-		  <button id="closePrintView" class="btn btn-danger mt-3 mr-5 btn-lg printViewCloseBtn"><i class="fas fa-sign-out-alt"></i></button>
-		  <button id="printPrintView" class="btn btn-light mt-3 mr-5 btn-lg printViewCloseBtn" style="float: left;"><i class="fa-sharp fa-solid fa-print"></i></button>
+		<div class="bg-primary fixedhd print-view-header">
+		  <button id="print-view-close" class="btn btn-danger mt-3 mr-5 btn-lg print-view-close-btn"><i class="fas fa-sign-out-alt"></i></button>
+		  <button id="print-view-print" class="btn btn-light mt-3 mr-5 btn-lg print-view-print-btn" style="float: left;"><i class="fa-sharp fa-solid fa-print"></i></button>
 		</div>
 		<center><img style="height: 45px;margin-bottom: 20px;" src="textures/prolaser-logo-black.png" ></center>
 		<p style="text-align: center;margin-bottom: 2px;font-weight:bold; text-shadow: unset;">SPEED EVENT RECORD</p>
@@ -149,13 +151,13 @@
 			</tr>
 		  </tbody>
 		 </table>
-		<div id='printMap' style="margin-top: 20px; width: 400px; height: 275px;"></div>
+		<div id='print-map' style="margin-top: 20px; width: 400px; height: 275px;"></div>
 		<div class="footer-container">
-			<hr style="margin-bottom: 5px">
+			<hr>
 			<div class="footer">
 				<p class="left" style="padding-left:0; text-shadow: unset;">Luxart Engineering Inc.</p>
 				<p class="center" style="text-shadow: unset;">1 / 1</p>
-				<p id='printFooterDate' class="right" style="text-shadow: unset;"></p>
+				<p id='print-footer-date' class="right" style="text-shadow: unset;"></p>
 			</div>
 		</div>
 	</div>
@@ -195,7 +197,8 @@
 					</div>
 				</div>
 			</div> 
-		  <button id="closeTablet" class="btn btn-danger mt-3 mr-5 btn-lg" style="float: right; margin: 10px; padding: 2px 19px; font-size: 25px;"><i class="fa-sharp fa-solid fa-xmark"></i></button>
+		  <button id="tablet-close" class="btn btn-danger mt-3 mr-5 btn-lg"><i class="fa-sharp fa-solid fa-xmark"></i></button>
+		  <button id="toggle-theme" class="btn mt-3 mr-5 btn-lg" style="color: white;"><i class="fa-solid fa-circle-half-stroke"><span id="theme-text"> D</span></i></button>
 		  <img style="margin: 15px; height: 30px;" src="textures/prolaser-logo.png" > 
 		</div>
 		<div id="clock-table-container">
@@ -206,7 +209,7 @@
 				  <th class="timestamp">Timestamp</th>
 				  <th class="speed">Speed<br>(mph)</th>
 				  <th class="distance">Distance<br>(feet)</th>
-				  <th class="player">Player</th>
+				  <th class="player">User</th>
 				  <th class="street">Street</th>
 				  <th class="mapping">Map</th>
 				  <th class="print">Print</th>

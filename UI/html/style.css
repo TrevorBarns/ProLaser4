@@ -11,6 +11,10 @@ p {
 	text-shadow: 0 0 12px #1bff00ab, 0 0 44px #10ff00;
 }
 
+b > a:focus {
+    outline: none !important;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -54,7 +58,7 @@ body {
     background-position: bottom;
 }
 
-#rangehud{
+#range-hud{
 	font-family: 'SmallLcd';
     color: #d0db21;
     margin: 24px 0px -1px;
@@ -69,7 +73,7 @@ body {
 	text-shadow: 3px 2px 0px rgb(251 12 12 / 20%), 0px -2px 1px rgb(49 251 12 / 50%), -1px 1px 1px rgb(0 0 0 / 50%);
 }
 
-#speedhud{
+#speed-hud{
     font-family: 'SmallLcd';
     color: #d0db21;
     grid-column: 1;
@@ -157,7 +161,7 @@ body {
     grid-row: 2;
 }
 
-#verticaldiv {
+#vertical-div {
     left: 42%;
     top: 27%;
     width: 0.5%;
@@ -169,7 +173,7 @@ body {
 	box-shadow: rgb(27 255 0 / 78%) 0px 0px 12px, rgb(16 255 0 / 50%) 0px 0px 44px;
 }
 
-#lasergun {
+#laser-gun {
     display: none;
 	position: absolute;
     height: 389px;
@@ -181,6 +185,9 @@ body {
     transform: scale(0.65);
     transform-origin: bottom;
     left: 60%;
+	cursor: move;
+	z-index: 1;
+	user-select: none;
 }
 
 #top-container {
@@ -260,6 +267,7 @@ a {
     max-height: 1080px;
     max-width: 1920px;
     box-shadow: 0 0 20px 0px #000000ad;
+	z-index: 2;
 }
 
 #map {
@@ -329,8 +337,17 @@ a {
 	padding: 0 !important;
 }
 
-.tableBtn{
+.table-btn{
 	width: 90%;
+	height: 73%;
+    border-radius: 4px;
+	background-color: #fff;
+	border: 1px solid #ccc;
+}
+
+.table-btn:hover{
+	background-color: #e6e6e6;
+	border: 1px solid #adadad;
 }
 
 .centered-container {
@@ -363,8 +380,9 @@ a {
     border-top: 1px solid #b9b9b9 !important;
 }
 
-th {
-	background-color: rgb(237, 237, 237);
+.footer-container > hr  {
+    margin-bottom: 5px;
+    border-top: 1px solid #b9b9b9;
 }
 
 td {
@@ -380,22 +398,26 @@ td {
 	table-layout: auto !important;
 }
 
-#printMap {
+#print-map {
 	width:4in !important;
 	height:3in !important;
 	overflow: hidden !important;
 }
 
-.printViewHeader {
+.print-view-header {
 	background-color: rgb(24 24 24) !important;
     width: 6.90in !important;
     height: 39px !important;
     margin: -0.41in -0.4in 0.4in !important;
 }
 
+#view-record > table > tbody > tr > th {
+    background-color: rgb(237, 237, 237);
+}
+
 .footer-container{
 	position: relative;
-    color: rgb(171 171 171);
+    color: rgb(171 171 171) !important;
 }
 
 .footer{
@@ -405,11 +427,23 @@ td {
     font-size: 11px;
 }
 
-.printViewCloseBtn {
+.print-view-close-btn {
 	margin: 4px !important; 
     padding: 6px 11px !important;
 	font-size: 12px !important;
 	float: right;
+}
+
+.print-view-print-btn {
+	margin: 4px !important; 
+    padding: 6px 11px !important;
+	font-size: 12px !important;
+	float: right;
+	background-color: #fff;
+}
+
+.print-view-print-btn:hover {
+	background-color: #e6e6e6;
 }
 
 .fa-print {
@@ -449,18 +483,27 @@ td {
 /* PRINT VIEW PRINT RESULT DIALOG */
 #print-result-dialog {
 	background-color: rgb(255, 255, 255);
-    width: 375px;
-    padding: 0.4in 0 0;
+    padding: 0.4in 0.1in 0;
     border: rgb(39, 39, 39) 0.5vh solid;
     font-family: 'Roboto';
     border-radius: 10px;
 }
 
+h6 {
+	color: black;
+	font-size: 16px !important;
+    margin: 0px !important;
+}
+
+
 .dialog-header {
-	background-color: rgb(24 24 24) !important;
-    width: 3.85in !important;
+    background-color: rgb(24 24 24) !important;
+    width: calc(100% + 20px); 
+    margin-left: -10px; 
+    margin-right: -10px;
     height: 38px !important;
-	margin: -39px -39px 15px !important;
+    margin-top: -39px !important;
+    margin-bottom: 15px !important;
 }
 
 .dialog-body {
@@ -469,7 +512,7 @@ td {
     justify-content: center;
 }
 
-.dialogButton {
+.dialog-button {
 	margin: 4px !important; 
     padding: 6px 11px !important;
 	font-size: 12px !important;
@@ -544,6 +587,32 @@ td {
     text-align: center;
 }
 
+#tablet-close{
+	float: right; 
+	margin: 10px; 
+	padding: 2px 19px; 
+	font-size: 25px;
+}
+
+#toggle-theme{
+    float: right;
+    margin: 15px 12px 0px 0px;    
+	padding: 2px 15px;
+    font-size: 19px;
+    background-color: transparent;
+    border: 1px solid #9b9b9b;
+}
+
+#toggle-theme:hover {
+    background-color: #404040;
+    border: 1px solid gray;
+}
+
+#theme-text {
+    text-shadow: none;
+    font-size: 10px;
+}
+
 .btn-group {
   display: flex !important;
   justify-content: center;
@@ -582,7 +651,7 @@ label[for="btn-all-pages"]:hover:after {
   font-size: 0.9em;
   white-space: nowrap;
   opacity: 0.9;
-  z-index: 2;
+  z-index: 3;
 }
 
 label[for="btn-all-pages"]:hover:after strong {
@@ -597,7 +666,7 @@ label[for="btn-all-pages"]:hover:after {
 
 .legend-container {
 	background-color: rgb(255 255 255 / 70%);
-	border: 1px solid #cccccc7d;
+	border: none;
 	padding: 5px ;
 	border-radius: 5px;
 	box-shadow: 0 0 5px #cccccc73;
@@ -655,14 +724,14 @@ label[for="btn-all-pages"]:hover:after {
 }
 
 #loading-dialog-container {
-	width: 82vw; 
-	height: 46vw; 
-	max-height: 1080px; 
-	max-width: 1920px; 
-	background: rgba(0, 0, 0, 0.38); 
-	margin: -1.5vh; 
-	border-radius: 20px; 
-	z-index: 3;	
+    width: 80.1vw;
+    height: 44.1vw;
+    max-height: 1036px;
+    max-width: 1877px;
+    margin: 0px 6px 0px 0px;
+    border-radius: 0px;
+	backdrop-filter: blur(3px);
+	z-index: 4;	
 }
 
 #loading-dialog {

@@ -1,0 +1,99 @@
+@import url("https://bootswatch.com/3/cyborg/bootstrap.min.css");
+
+body {
+	color: black;
+}
+
+#tablet{
+	color: white;
+	background-color: #080808 !important;							
+}
+
+.table-btn{
+	width: 90%;
+	height: 73%;
+    background-color: #424242;
+    border: 1px solid #424242;
+}
+
+.table-btn:hover {
+    background-color: #282828;
+	border: 1px solid #232323;
+}
+
+/* PRINT VIEW */
+#view-record > * {
+	background-color: white;
+	color: black;
+}
+
+.print-view-print-btn {
+	background-color: #606060;
+}
+
+.print-view-print-btn:hover{
+	background-color: #424242;
+}
+
+.fa-print {
+  color: white !important;
+}
+
+/* PRINT VIEW PRINT RESULT DIALOG */
+#print-result-dialog {
+    background-color: black;
+    color: white;
+    border: rgb(39, 39, 39) 0.5vh solid;
+}
+
+h6 {
+	color: white;
+}
+
+.btn-group > * {
+	border: unset !important;
+}
+
+.btn-check:checked + .btn-outline-primary {
+	background-color: #1a62ae;
+	color: #fff;
+}
+
+.btn-check:not(:checked) + .btn-outline-primary {
+	color: unset;
+	background: #424242;
+}
+
+.map-controls-container {
+    border-left: 2px #4a4a4a solid;
+}
+
+.map-controls-label {
+    color: white !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #282828 !important;
+}
+
+.legend-container {
+	background-color: rgb(40 40 40 / 70%);
+	box-shadow: 0 0 5px #00000073;
+	color: white;
+}
+
+.legend-container.hidden {
+  display: none;
+}
+
+.legend-container:hover {
+	background-color: rgb(50 50 50) !important;
+}
+
+.marker-label {
+	color: black !important;
+}
+
+#loading-dialog {
+    background: #323131;
+}

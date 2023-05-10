@@ -1,4 +1,5 @@
 // LIDAR
+var lidarOsd;
 var context = new AudioContext();
 var audioPlayer = null;
 var clockTone = createClockTone(context);
@@ -33,6 +34,11 @@ var speedFilter = 0;
 var mapMarkerPageOption = true
 var mapMarkerPlayerOption = false
 var legendWrapper;
+var themeMode = 0; // 0-light, 1-dark, 2-auto
+var tabletTime;
+var time;
+const darkTime = new Date("1970-01-01T21:30:00");
+const lightTime = new Date("1970-01-01T06:15:00");
 
 var infowindow = new google.maps.InfoWindow()
 const mapOptions = {
@@ -102,6 +108,18 @@ $(document).ready(function () {
 			'</table>'
 		)
 		sendDataToLua('CloseTablet', undefined);
+	});	
+	
+	$('#toggle-theme').click(function() { 
+		if (themeMode == 0) {
+			themeMode = 1;
+		} else if(themeMode == 1) {
+			themeMode = 2;
+		} else {
+			themeMode = 0;
+		}
+		RefreshTheme();
+		sendDataToLua('SendTheme', themeMode);
 	});
 	
 	$('#printPrintView').click( function() { 
@@ -275,6 +293,14 @@ $(document).ready(function () {
 			resourceName = event.data.name;
 			version = event.data.version;
 			$('#tablet-version').text('v'+version);
+			themeMode = event.data.theme;
+			RefreshTheme();
+			if (event.data.osdStyle != false){
+				event.data.osdStyle = JSON.parse(event.data.osdStyle);
+				$('#laser-gun').css("left", event.data.osdStyle.left);
+				$('#laser-gun').css("top", event.data.osdStyle.top);
+				$('#laser-gun').css("transform", 'scale('+event.data.osdStyle.scale+')');
+			}
 			if (event.data.metric) {
 				speedFilters = metricSpeedFilters;
 				velocityUnit = 'km/h';
@@ -346,6 +372,21 @@ $(document).ready(function () {
 			playerName = event.data.name;
 			databaseRecords = JSON.parse(event.data.table);
 			updateTabletWindow(playerName, databaseRecords);
+			
+			// time based night mode handling
+			time = date = new Date("1970-01-01");
+			const [hours, minutes, seconds] = event.data.time.split(":");
+			date.setFullYear(1970, 0, 1);
+			time.setHours(hours);
+			time.setMinutes(minutes);
+			if (themeMode == 2) {
+				console.log(time > darkTime, time < lightTime)
+				if (time > darkTime || time < lightTime) {
+					$("#theme").attr("href", "dark.css");
+				} else {
+					$("#theme").attr("href", "");
+				}
+			}
         } else if (event.data.action == 'SetTabletState') {
             if (!event.data.state) {
                 $('#tablet').fadeOut();
@@ -1038,4 +1079,23 @@ function uploadImageToImgur(dataUrl) {
 		$('#urlDisplay').text(error);
 		$('#print-result-dialog-container').fadeIn();
   });
+}
+
+function RefreshTheme(){
+	if (themeMode == 0) {
+		$("#theme").attr("href", "");
+		$("#theme-text").text(' D');
+	} else if(themeMode == 1) {
+		$("#theme").attr("href", "dark.css");
+		$("#theme-text").text(' N')
+	} else {
+		if (time && darkTime && lightTime){
+			if (time > darkTime || time < lightTime) {
+				$("#theme").attr("href", "dark.css");
+			} else {
+				$("#theme").attr("href", "");
+			}
+		}
+		$("#theme-text").text(' A')				
+	}
 }
