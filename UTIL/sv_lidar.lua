@@ -34,7 +34,7 @@ if cfg.logging and MySQL ~= nil then
 	local selectQueryRaw = [[
 			SELECT 
 				rid,
-				DATE_FORMAT(timestamp, "%m/%d/%Y %H:%i") AS timestamp, 
+				DATE_FORMAT(timestamp, "%c/%d/%y %H:%i") AS timestamp, 
 				speed, 
 				distance as 'range',
 				targetX, 
