@@ -17,9 +17,7 @@ local tpAimDownSight = false
 local ped, target
 local playerId = PlayerId()
 local targetHeading, pedHeading, towards
-local velocity, range, adjacentDistance, laneOffsetDistance, distSquared, speedEstimate
-local rangeAdjust = false
-local speedAdjust
+local lastTarget, lastDistance, lastTime
 
 local lidarFOV = (cfg.minFOV+cfg.maxFOV)*0.5
 local currentLidarFOV
@@ -560,53 +558,50 @@ end)
 --	COSINE ERROR CALULCATIONS AND TOWARDS/AWAY STATE
 --	SEE: https://copradar.com/chapts/chapt2/ch2d1.html
 GetLidarReturn = function(target, ped)
-	targetHeading = GetEntityHeading(target)
-	towards = false
-	speedAdjust = 0.0
+	--	no target found
 	if target == 0 then
 		return 0, 0, -1
 	end
-	
-	-- Get correct heading based on vehicle / hud sight
-	if isInVehicle and fpAimDownSight then
+
+	--	towards calculations
+	targetHeading = GetEntityHeading(target)
+	if hudMode then
 		pedHeading = GetCamRot(cam, 2)[3]
 	else
 		pedHeading = GetEntityHeading(ped) + GetGameplayCamRelativeHeading()
 	end
+	towards = false
 	
-	local diffHeading = math.abs(pedHeading - targetHeading) % 180
+	diffHeading = math.abs((pedHeading - targetHeading + 180) % 360 - 180)
+	
 	if ( diffHeading > 135 ) then
 		towards = true
 	end
-
-	-- If the difference in heading is greater than 90 degrees, subtract it from 180 to get the angle regardless of direction
-	if diffHeading > 90 then
-	  diffHeading = 180 - diffHeading
-	end	
 	
-	range  = GetDistanceBetweenCoords(GetEntityCoords(ped),GetEntityCoords(target), true)*rangeScalar
-	diffHeadingRadians = math.rad(diffHeading)
-	speedEstimate = GetEntitySpeed(target)*velocityScalar
-
-	-- If diff abs heading > 45 degress zero out invalid angle
-	if diffHeading > 15 then
-		speedAdjust = 1 - (diffHeading / 100)
-		rangeAdjust = not rangeAdjust
-		if rangeAdjust then
-			range = range - math.random(1,math.floor(range))
+	if diffHeading < 160 and diffHeading > 110 or
+	   diffHeading > 20  and diffHeading < 70 then
+		if math.random(0, 100) > 15 then
+			return 0, 0, -1
 		end
 	end
 	
-	if speedEstimate > 0 then
-		adjacentDistance = range * math.cos(diffHeadingRadians)
-		laneOffsetDistance = range * math.sin(diffHeadingRadians)
-		distSquared = adjacentDistance^2 + laneOffsetDistance^2
-		speedEstimate = math.abs(math.floor(speedEstimate * (adjacentDistance / math.sqrt(distSquared))-speedAdjust))
-	elseif range > 1800 then
+	targetPos  = GetEntityCoords(target)
+	distance = #(targetPos-GetEntityCoords(ped))
+	if lastDistance ~= 0 and lastTarget == target then
+		--	distance traveled in meters
+		distanceTraveled = lastDistance - distance
+		--	time between last clock and current
+		timeElapsed = (lastTime - GetGameTimer()) / 1000
+		--	distance over time with conversion from neters to miles.
+		speedEstimate = string.format('%.0f', math.abs((distanceTraveled * velocityScalar) / timeElapsed))
+		--	update last values to determine next clock
+		lastDistance, lastTarget, lastTime = distance, target, GetGameTimer()
+	else
+		lastDistance, lastTarget, lastTime = distance, target, GetGameTimer()
 		return 0, 0, -1
 	end
 	
-	return speedEstimate, range, towards
+	return speedEstimate, distance, towards
 end
 
 --	AIM DOWNSIGHTS PAN
