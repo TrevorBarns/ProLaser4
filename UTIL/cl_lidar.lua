@@ -10,6 +10,7 @@ local tempHidden = false
 local shown = false
 local hudMode = false
 local isAiming = false
+local isUsingKeyboard = false
 local inFirstPersonPed = true
 local fpAimDownSight = false
 local tpAimDownSight = false
@@ -256,6 +257,7 @@ Citizen.CreateThread( function()
 		end
 
 		if holdingLidarGun then
+			isUsingKeyboard = IsUsingKeyboard(0)
 			-- toggle ADS if first person and aim, otherwise unADS
 			if IsFpsAimControlPressed() then
 				fpAimDownSight = true
@@ -268,7 +270,6 @@ Citizen.CreateThread( function()
 					DisableControlAction(0, 25, true)		-- INPUT_AIM
 					DisableControlAction(0, 177, true)		-- INPUT_CELLPHONE_CANCEL
 					DisableControlAction(0, 68, true)		-- INPUT_VEH_AIM
-					DisableControlAction(0, 68, true)		-- INPUT_VEH_AIM						
 					Wait(1)
 				end
 				Wait(100)
@@ -311,7 +312,7 @@ Citizen.CreateThread( function()
 					end
 					Wait(250)
 				--	Hides history if on first, otherwise go to previous history
-				elseif IsDisabledControlPressed(0, cfg.previousHistory) and IsUsingKeyboard(0) and #HIST.history > 0 then
+				elseif IsDisabledControlPressed(0, cfg.previousHistory) and isUsingKeyboard and #HIST.history > 0 then
 					if isHistoryActive then
 						historyIndex = historyIndex - 1
 						if scrollWait == slowScroll then
@@ -326,7 +327,7 @@ Citizen.CreateThread( function()
 						end
 					end
 				-- Displays history if not shown, otherwise go to next history page.
-				elseif IsDisabledControlPressed(0, cfg.nextHistory) and IsUsingKeyboard(0) and #HIST.history > 0 then
+				elseif IsDisabledControlPressed(0, cfg.nextHistory) and isUsingKeyboard and #HIST.history > 0 then
 					isHistoryActive = true
 					HUD:SetHistoryState(isHistoryActive)
 					if historyIndex < #HIST.history then
@@ -337,7 +338,7 @@ Citizen.CreateThread( function()
 						HUD:SetHistoryData(historyIndex, HIST.history[historyIndex])
 						Wait(scrollWait)
 					end
-				elseif IsDisabledControlJustReleased(0, cfg.changeSight) and IsUsingKeyboard(0) and fpAimDownSight then
+				elseif IsDisabledControlJustReleased(0, cfg.changeSight) and isUsingKeyboard and fpAimDownSight then
 					HUD:ChangeSightStyle()
 				end
 			end
@@ -369,7 +370,8 @@ IsTriggerControlPressed = function()
 	end
 	
 	-- INPUT_ATTACK or INPUT_VEH_HANDBRAKE (LCLICK, SPACEBAR, CONTROLLER RB)
-	if (IsDisabledControlPressed(0, cfg.trigger) and IsUsingKeyboard(0)) or IsControlPressed(0, 76) then
+	--	On foot, LMOUSE and Trigger																		In vehicle RB
+	if (IsDisabledControlPressed(0, cfg.trigger) and (not isInVehicle or isUsingKeyboard)) or (IsControlPressed(0, 76) and isInVehicle)  then
 		return true
 	end
 	return false
@@ -385,7 +387,13 @@ IsFpsAimControlPressed = function()
 		return false
 	end
 	
-	if IsControlJustPressed(0,25) or IsControlJustPressed(0,68) then
+	-- LBUMPER OR LMOUSE IN VEHICLE
+	if IsControlJustPressed(0,68) and isInVehicle then
+		return true
+	end
+	
+	-- LTRIGGER OR LMOUSE ON FOOT
+	if IsControlJustPressed(0, 25) and not isInVehicle then
 		return true
 	end
 	return false
@@ -397,9 +405,25 @@ IsFpsUnaimControlPressed= function()
 		return false
 	end
 
-	if IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0) or IsControlJustPressed(0,68) or not (inFirstPersonPed or inFirstPersonVeh) then
+	if not (inFirstPersonPed or inFirstPersonVeh) then
 		return true
 	end
+	
+	-- LBUMPER OR LMOUSE IN VEHICLE
+	if IsControlJustPressed(0,68) and isInVehicle then
+		return true
+	end
+	
+	-- LTRIGGER OR LMOUSE ON FOOT
+	if IsControlJustPressed(0, 25) and not isInVehicle then
+		return true
+	end
+
+	-- BACKSPACE, ESC, RMOUSE or V (view-change)
+	if (isUsingKeyboard and (IsControlJustPressed(0,177)) or IsControlJustPressed(0, 0)) then
+		return true
+	end
+	
 	return false
 end
 
@@ -408,7 +432,13 @@ IsTpAimControlPressed = function()
 	if tpAimDownSight then
 		return false
 	end
-	if (IsControlJustPressed(0,25) and IsUsingKeyboard(0)) or IsControlJustPressed(0,68) then
+	-- LBUMPER OR LMOUSE IN VEHICLE
+	if IsControlJustPressed(0,68) and isInVehicle then
+		return true
+	end
+	
+	-- LTRIGGER OR LMOUSE ON FOOT
+	if IsControlJustPressed(0, 25) and not isInVehicle then
 		return true
 	end
 	return false
@@ -419,10 +449,22 @@ IsTpUnaimControlPressed = function()
 	if not tpAimDownSight then
 		return false
 	end
-
-	if IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0) or IsControlJustPressed(0,68) then
+	
+	-- LBUMPER OR LMOUSE IN VEHICLE
+	if IsControlJustPressed(0,68) and isInVehicle then
 		return true
 	end
+	
+	-- LTRIGGER OR LMOUSE ON FOOT
+	if IsControlJustPressed(0, 25) and not isInVehicle then
+		return true
+	end
+
+	-- BACKSPACE, ESC, RMOUSE or V (view-change)
+	if (isUsingKeyboard and (IsControlJustPressed(0,177)) or IsControlJustPressed(0, 0)) then
+		return true
+	end
+	
 	return false
 end
 
