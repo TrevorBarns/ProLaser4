@@ -107,6 +107,20 @@ RegisterCommand('lidarshow', function(source, args)
 end)
 TriggerEvent('chat:addSuggestion', '/lidarshow', 'Show lidar display to nearest player for 5 seconds.')
 
+--	RESIZE / MOVE OSD
+RegisterCommand('lidarmove', function(source, args)
+	if holdingLidarGun and shown and not hudMode then
+		if args[1] ~= nil and string.upper(args[1]) == 'TRUE' then
+			HUD:ResizeOnScreenDisplay(true)
+			HUD:ShowNotification("~g~Success~s~: ProLaser4 OSD position and scale reset.")
+		else
+			HUD:ResizeOnScreenDisplay()
+			HUD:DisplayControlHint('moveOSD')
+		end
+	end
+end)
+TriggerEvent('chat:addSuggestion', '/lidarmove', 'Move and resize Lidar OSD.', { { name = "reset (opt.)", help = "Optional: resets position and scale of OSD <true/false>." } } );
+
 local isCurrentlyBeingShown = false
 RegisterNetEvent("prolaser4:ReturnDisplayData")
 AddEventHandler("prolaser4:ReturnDisplayData", function(displayData)
@@ -473,7 +487,7 @@ CreateThread(function()
 				SetCamFov(cam, lidarFOV)
 				RenderScriptCams(true, false, 0, 1, 0)
 				if cfg.displayControls then
-					HUD:DisplayControlHint()
+					HUD:DisplayControlHint('fpADS')
 					cfg.displayControls = false
 				end
 

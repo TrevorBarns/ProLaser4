@@ -17,6 +17,11 @@ var rangeUnit = 'ft'
 var speedFilters = []
 const imperialSpeedFilters = [0, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 const metricSpeedFilters = [0, 20, 40, 60, 80, 100, 120, 140, 160, 180];
+var moveMode = false;
+var initWidth = 1920;
+var initHeight = 1080;
+var lastTop = 0;
+var lastLeft = 0;
 
 // TABLET
 var map;
@@ -59,6 +64,9 @@ $(document).keyup(function(event) {
 } );
  
 $(document).ready(function () {
+	lidarOsd = document.getElementById("laser-gun");
+	initWidth = document.body.clientWidth;
+	initHeight = document.body.clientHeight;
     $('#hud').hide();
     $('#lasergun').hide();
     $('#history-container').hide();
@@ -341,7 +349,18 @@ $(document).ready(function () {
         } else if (event.data.action == 'SetTabletState') {
             if (!event.data.state) {
                 $('#tablet').fadeOut();
-            }   
+            }  
+		} else if (event.data.action == 'SendResizeAndMove') {
+			if (event.data.reset) {
+				lidarOsd.style.top = "unset";
+				lidarOsd.style.bottom = "2%";
+				lidarOsd.style.left = "60%";
+				lidarOsd.style.transform = "scale(0.65)";
+			}
+			lidarOsd.addEventListener("wheel", handleScrollResize);
+			lidarOsd.addEventListener("mousedown", dragMouseDown);
+			moveMode = true;
+			$('#laser-gun').css('pointer-events', 'all');
 		}
     });
 });
@@ -434,6 +453,115 @@ function playClockTone() {
         );
     }, 300); // update about every second
 }
+
+
+// Move Mode
+// Drag to move functions below.
+// Exit HUD Move Mode 
+$(document).keyup(function(event) {
+	if (moveMode) {
+		//					Esc				Backspace				Space
+		if (event.keyCode == 27 || event.keyCode == 9 || event.keyCode == 32) {
+			ReturnOsdStyle();
+		}
+	}
+} );
+
+$(document).contextmenu(function() {
+	if (moveMode) {
+		ReturnOsdStyle();
+	}
+} );
+
+function ReturnOsdStyle() {
+	var computedStyles = window.getComputedStyle(lidarOsd);
+	var left = computedStyles.getPropertyValue("left");
+	var top = computedStyles.getPropertyValue("top");
+	var transform = computedStyles.transform;
+	var newScale = 0.65; 
+
+	if (transform && transform !== "none") {
+	  var matrixMatch = transform.match(/^matrix\((.+)\)$/);
+	  if (matrixMatch && matrixMatch.length > 1) {
+		var matrixValues = matrixMatch[1].split(", ");
+		var scale = parseFloat(matrixValues[0]);
+		if (!isNaN(scale)) {
+			newScale = scale
+		}
+	  }
+	}
+
+	sendDataToLua( "ReturnOsdScaleAndPos", data = { left: left, top: top, scale: newScale } );
+	moveMode = false;
+	$('#laser-gun').css('pointer-events', 'none');
+}
+
+function dragMouseDown(e) {
+  e = e || window.event;
+  e.preventDefault();
+  // get the mouse cursor position at startup:
+  pos3 = e.clientX;
+  pos4 = e.clientY;
+  document.onmouseup = closeDragElement;
+  // call a function whenever the cursor moves:
+  document.onmousemove = elementDrag;
+}
+
+function elementDrag(e) {
+  e = e || window.event;
+  e.preventDefault();
+  // calculate the new cursor position:
+  pos1 = pos3 - e.clientX;
+  pos2 = pos4 - e.clientY;
+  pos3 = e.clientX;
+  pos4 = e.clientY;
+  // set the element's new position:
+  lidarOsd.style.top = (lidarOsd.offsetTop - pos2) + "px";
+  lidarOsd.style.left = (lidarOsd.offsetLeft - pos1) + "px";
+}
+
+function closeDragElement() {
+  // stop moving when mouse button is released:
+  document.onmouseup = null;
+  document.onmousemove = null;
+}
+
+function handleScrollResize(event) {
+  var currentScale = parseFloat($(lidarOsd).css("transform").replace("matrix(", "").split(",")[0]);
+  
+  if (isNaN(currentScale)) {
+    console.log("Scale not previously set on " + lidarOsd.id + ", using 1.0");
+    currentScale = 0.65;
+  }
+  
+  var deltaY = Math.sign(event.deltaY);
+  var newScale = currentScale + (deltaY < 0 ? 0.05 : -0.05);
+  
+  if (newScale < 0.3) {
+    newScale = 0.3;
+  } else if (newScale > 1.0){
+	  newScale = 1.0;
+  }
+
+  $(lidarOsd).css("transform", "scale(" + newScale + ")");
+}
+
+// Handle Resolution Changes -> Restore Position
+$(window).resize(function() {
+	if (document.body.clientWidth != initWidth || document.body.clientHeight != initHeight) {
+		lastTop = lidarOsd.style.top;
+		lastLeft = lidarOsd.style.left;
+		lidarOsd.style.top = "unset";
+		lidarOsd.style.bottom = "2%";
+		lidarOsd.style.left = "60%";
+		sendDataToLua( "ResolutionChange", data = { restore: false } );
+	} else {
+		lidarOsd.style.top = lastTop;
+		lidarOsd.style.left = lastLeft;
+		sendDataToLua( "ResolutionChange", data = { restore: true } );
+	}
+
+});
 // ===== END MAIN SCRIPT ======
 
 // ========= TABLET =========

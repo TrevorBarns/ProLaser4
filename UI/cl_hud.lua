@@ -12,6 +12,17 @@ function HUD:SetDisplayMode(mode)
 	SendNUIMessage({ action = "SetDisplayMode", mode = mode })
 end
 
+-- Move & Resize
+function HUD:ResizeOnScreenDisplay(reset)
+	reset = reset or false
+	if reset then
+		SendNUIMessage({ action = "SendResizeAndMove", reset = reset })
+	else
+		SendNUIMessage({ action = "SendResizeAndMove" })
+		SetNuiFocus(true, true)
+	end
+end
+
 -- Setter for SFX vars
 function HUD:SendConfigData()
 	SendNUIMessage({
@@ -147,6 +158,21 @@ RegisterNUICallback('ReturnCurrentDisplayData', function(data, cb)
 	TriggerServerEvent('prolaser4:SendDisplayData', targetPlayer, data)
 end )
 
+--[[Callback for JS -> LUA to get OSD position and scale]]
+RegisterNUICallback('ReturnOsdScaleAndPos', function(data, cb)
+	HIST:SaveOsdStyle(data)
+	SetNuiFocus(false, false)
+end )
+
+--[[Callback for JS -> LUA Notify of resolution change and temporary position reset]]
+RegisterNUICallback('ResolutionChange', function(data, cb)
+	if data.restore then
+		HUD:ShowNotification("~y~Info~w~: resolution changed, restoring old ProLaser4 position.")
+	else
+		HUD:ShowNotification("~y~Info~w~: resolution changed, resetting ProLaser4 position temporarily.")
+	end
+end )
+
 --On screen GTA V notification
 function HUD:ShowNotification(text)
 	SetNotificationTextEntry('STRING')
@@ -154,8 +180,14 @@ function HUD:ShowNotification(text)
 	DrawNotification(false, true)
 end
 
-function HUD:DisplayControlHint()
+function HUD:DisplayControlHint(hint)
 	SetTextComponentFormat('STRING')
-	AddTextComponentString('~INPUT_AIM~ Toggle ADS\n~INPUT_LOOK_BEHIND~ Change Scope Style')
-	DisplayHelpTextFromStringLabel(0, 0, 0, 5000)
+	if hint == 'fpADS' then
+		AddTextComponentString('~INPUT_AIM~ Toggle ADS\n~INPUT_LOOK_BEHIND~ Change Scope Style')
+		DisplayHelpTextFromStringLabel(0, 0, 0, 5000)
+	elseif hint == 'moveOSD' then
+		AddTextEntry('prolaser4_move', '~INPUT_LOOK_LR~ Move\n~INPUT_WEAPON_WHEEL_PREV~ Resize Larger\n~INPUT_WEAPON_WHEEL_NEXT~ Resize Smaller')
+		AddTextComponentSubstringTextLabel('prolaser4_move')
+		DisplayHelpTextFromStringLabel(0, 0, 0, 7000)
+	end
 end
