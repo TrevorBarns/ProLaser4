@@ -776,7 +776,7 @@ function processRecords(playerName, databaseRecords){
 
 		
 		// Generate marker info window content
-		record.infoContent = '<b>RID: ' + record.rid + '</b><br>' + record.speed + velocityUnit + '<br>' + record.player;
+		record.infoContent = '<div class="marker-label"><b>RID: <a href="#" onclick="retrieveRecordFromMarker(\'' + record.rid + '\')">' + record.rid + '</a></b><br>' + record.speed + velocityUnit + '<br>' + record.player + '</div>';
 		
 		// Is own record conditional marker formatting
 		if ( record.player == playerName ) {
@@ -1209,6 +1209,15 @@ function uploadImageToDiscord(dataUrl) {
 		$('#url-display-discord').html('<b><u>Discord:</u></b> ' + error);
 		$('#print-result-dialog-container').fadeIn();
   });
+}
+
+
+function retrieveRecordFromMarker(text) {
+	if ($('#clock-table').DataTable().search() == ''){
+		$('#clock-table').DataTable().search(text).draw();
+	} else {
+		$('#clock-table').DataTable().search('').draw();
+	}
 }
 
 function RefreshTheme(){
