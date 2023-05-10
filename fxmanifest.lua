@@ -6,7 +6,7 @@ lua54 'on'
 author 'Trevor Barns'
 description 'Lidar Resource.'
 
-version '1.0.1'						-- Readonly version of currently installed version.
+version '1.1.0'						-- Readonly version of currently installed version.
 ------------------------------
 ui_page('UI/html/index.html')
 
