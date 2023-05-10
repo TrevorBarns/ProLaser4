@@ -19,8 +19,9 @@ local GetTimeString, PadTime, CorrectHour
 RegisterCommand('lidarwipe', function(source, args)
 	DeleteResourceKvp(savePrefix .. 'history')
 	HUD:ShowNotification("~g~Success~s~: wiped local save data. Please restart for changes to take effect.")
+	HUD:ResizeOnScreenDisplay(true)
 end)
-TriggerEvent('chat:addSuggestion', '/lidarwipe', 'Deletes history data.')
+TriggerEvent('chat:addSuggestion', '/lidarwipe', 'Deletes all local save data including local history, lidar position and scale.')
 
 if cfg.logging then
 -- MANUAL SAVE COMMAND
@@ -169,6 +170,30 @@ end
 --	HUD->HIST store self-test datetime for SQL
 function HIST:SetSelfTestTimestamp()
 	selfTestTimestamp = GetTimeString()
+end
+
+--	HIST->HUD return KVP theme save int/enum
+function HIST:GetTabletTheme()
+	return GetResourceKvpInt(savePrefix..'tablet_theme')
+end
+
+--	HUD->HIST send NUI theme back to HIST for storage
+function HIST:SaveTabletTheme(theme)
+	SetResourceKvpInt(savePrefix .. 'tablet_theme', theme)
+end
+
+--	HUD->HIST send NUI OSD style back to HIST for storage
+function HIST:SaveOsdStyle(data)
+	SetResourceKvp(savePrefix .. 'osd_style', json.encode(data))
+end
+
+--	HIST->HUD return KVP for OSD style
+function HIST:GetOsdStyle()
+	local osdStyle = GetResourceKvpString(savePrefix..'osd_style')
+	if osdStyle ~= nil then
+		return GetResourceKvpString(savePrefix..'osd_style')
+	end
+	return false
 end
 
 -- [[ LOCAL FUNCTIONS ]]

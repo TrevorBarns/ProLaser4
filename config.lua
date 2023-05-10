@@ -62,7 +62,8 @@ cfg.loggingSelectLimit = 2000
 cfg.imgurApiKey = ''
 --	Enables "printing" records, uploads screenshot to Imgur and returns link. See docs. https://api.imgur.com/oauth2/addclient
 --		Format:'Client-ID XXXXXXXXXXXXXXX' 
-
+cfg.discordWebhook = ''
+--	Enables "printing" records, uploads screenshot to Discord webhook. See docs.
 
 --[[DEBUGGING]]
 cfg.serverDebugging = true

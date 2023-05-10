@@ -21,7 +21,7 @@ files {
 	'UI/html/**.png',
 	'UI/html/**.jpg',
 	'UI/html/lidar.js',
-	'UI/html/style.css',
+	'UI/html/**.css',
 	'UI/html/sounds/*.ogg',
 	'UI/weapons_dlc_bb.png',
 	'metas/*.meta',

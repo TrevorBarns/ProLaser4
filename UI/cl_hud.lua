@@ -30,10 +30,13 @@ function HUD:SendConfigData()
 		clockSFX = cfg.clockSFX, 
 		selfTestSFX = cfg.selfTestSFX,
 		imgurApiKey = cfg.imgurApiKey,
+		discordApiKey = cfg.discordWebhook,
 		recordLimit = cfg.loggingSelectLimit,
 		version = GetResourceMetadata(GetCurrentResourceName(), 'version', 0),
 		name = GetCurrentResourceName(),
 		metric = cfg.useMetric,
+		theme = HIST:GetTabletTheme(),
+		osdStyle = HIST:GetOsdStyle(),
 	})
 end
 
@@ -116,7 +119,7 @@ function HUD:SetHistoryData(index, data)
 end
 
 function HUD:SendDatabaseRecords(dataTable)
-	SendNUIMessage({ action = "SendDatabaseRecords", name = GetPlayerName(PlayerId()), table = json.encode(dataTable) })
+	SendNUIMessage({ action = "SendDatabaseRecords", name = GetPlayerName(PlayerId()), table = json.encode(dataTable), time = string.format("%s:%s:00", GetClockHours(), GetClockMinutes()) })
 end
 	
 function HUD:SetTabletState(state)
@@ -151,6 +154,11 @@ end
 --[[Callback for JS -> LUA to close tablet on html button]]
 RegisterNUICallback('CloseTablet', function(cb)
 	HUD:SetTabletState(false)
+end )
+
+--[[Callback for JS -> LUA to save current theme option]]
+RegisterNUICallback('SendTheme', function(data, cb)
+	HIST:SaveTabletTheme(data)
 end )
 
 --[[Callback for JS -> LUA to get display information back]]

@@ -30,10 +30,12 @@ var dataTable;
 var speedLimits = {};
 var playerName;
 var imgurApiKey;
+var discordApiKey;
 var speedFilter = 0;
 var mapMarkerPageOption = true
 var mapMarkerPlayerOption = false
 var legendWrapper;
+var currentRecord;
 var themeMode = 0; // 0-light, 1-dark, 2-auto
 var tabletTime;
 var time;
@@ -134,9 +136,9 @@ $(document).ready(function () {
 				$('#view-record').removeClass('no-border');
 			}, 1000)
 		} else {
-			$('#copyButton').hide();
-			$('#dialogMsg').text("Upload Failed");
-			$('#urlDisplay').text("No Imgur API set. Contact a server developer.");
+			$('#copy-button').hide();
+			$('#dialog-msg').text("<h6>Upload Failed</h6>");
+			$('#url-display-imgur').text("No Imgur or Discord integration set. Contact a server developer.");
 			$('#print-result-dialog-container').fadeIn();
 		}
 	});
@@ -150,15 +152,24 @@ $(document).ready(function () {
 		updateMarkers();
 	});
 	
-	$('#copyButton').click( function() { 
+	$('#copy-button').click(function() {
+		var urlDisplay = $('#url-display-discord').text();
+		if (urlDisplay === '') {
+			urlDisplay = $('#url-display-imgur').text();
+		}
+		
+		urlDisplay = urlDisplay.split(' ')[1];
+		
 		var textarea = document.createElement('textarea');
-		textarea.value = $('#urlDisplay').text();
+		textarea.value = urlDisplay;
 		document.body.appendChild(textarea);
 		textarea.select();
 		document.execCommand('copy');
 		document.body.removeChild(textarea);
-		$('#copyButton').text("Link Copied");
+
+		$('#copy-button').text("Link Copied");
 	});
+
 	
 	$('#closePrintDialog').click( function() { 
 		$('#print-result-dialog-container').fadeOut();
@@ -289,6 +300,7 @@ $(document).ready(function () {
             selfTestVolume = event.data.selfTestSFX;
             clockVolume = event.data.clockSFX;
 			imgurApiKey = event.data.imgurApiKey;	
+			discordApiKey = event.data.discordApiKey;
 			recordLimit = event.data.recordLimit;
 			resourceName = event.data.name;
 			version = event.data.version;
@@ -749,6 +761,7 @@ function processRecords(playerName, databaseRecords){
 			speedString = '<td class="speed">' + record.speed + '</td>';
 			console.log('^3Unable to locate speed limit of', primaryStreet);
 		} else {
+			databaseRecords[i].speedlimit = speedLimit;
 			if (record.speed < speedLimit) {
 				speedString = '<td class="speed">' + record.speed + '</td>'; 
 				markerColor = 'green-dot';
@@ -965,18 +978,18 @@ function filterMarkersBySpeed(dataList, speedFilter) {
 
 // ==== PRINT VIEW ====
 function openPrintView(element) {
-    var elementRecord = databaseRecords[element.id];
-	if ('serial' in elementRecord){
-		$('#serial').text(elementRecord.serial);
+    currentRecord = databaseRecords[element.id];
+	if ('serial' in currentRecord){
+		$('#serial').text(currentRecord.serial);
 	} else {
 		var serial = generateSerial()
 		databaseRecords[element.id].serial = serial
 		$('#serial').text(serial);
 	}
 	
-	$('#playerName').text(elementRecord.player);
-	if(elementRecord.selfTestTimestamp != "00/00/0000 00:00") {
-		$('#self-test-time').text(elementRecord.selfTestTimestamp);
+	$('#playerName').text(currentRecord.player);
+	if(currentRecord.selfTestTimestamp != "00/00/0000 00:00") {
+		$('#self-test-time').text(currentRecord.selfTestTimestamp);
 		$('.testResult').addClass('pass');
 		$('.testResult').text('PASS');
 	} else {
@@ -985,11 +998,11 @@ function openPrintView(element) {
 		$('.testResult').text('N/A');
 	}
 
-	$('#recID').text(elementRecord.rid);
-	$('#recDate').text(elementRecord.timestamp);
-	$('#recSpeed').text(elementRecord.speed + ' ' + velocityUnit);
-	$('#recRange').text(elementRecord.range);
-	$('#recStreet').text(elementRecord.street);
+	$('#recID').text(currentRecord.rid);
+	$('#recDate').text(currentRecord.timestamp);
+	$('#recSpeed').text(currentRecord.speed + ' ' + velocityUnit);
+	$('#recRange').text(currentRecord.range + ' ' + rangeUnit);
+	$('#recStreet').text(currentRecord.street);
 	
 	openInfo(element);
 	// open marker
@@ -1034,8 +1047,13 @@ function generateSerial() {
 function captureScreenshot() {
 	html2canvas(document.querySelector("#view-record"), {scale: '1.5'}).then(canvas => { 
 		const imgData = canvas.toDataURL('image/png');
-		var dataUrl = imgData.replace(/^data:image\/(png|jpg);base64,/, "");;
-		uploadImageToImgur(dataUrl);
+		if (imgurApiKey != ''){
+			var dataUrl = imgData.replace(/^data:image\/(png|jpg);base64,/, "");
+			uploadImageToImgur(dataUrl);
+		} 
+		if (discordApiKey != ''){
+			uploadImageToDiscord(imgData);
+		}
 	});
 }
 
@@ -1058,25 +1076,137 @@ function uploadImageToImgur(dataUrl) {
     if (response.ok) {
       response.json().then(function(data) {
         console.log('Image uploaded to Imgur. URL:', data.data.link);
-		$('#copyButton').show();
-		$('#copyButton').text("Copy to Clipboard");
-		$('#dialogMsg').text("Uploaded Successfully");
-		$('#urlDisplay').text(data.data.link);
+		$('#copy-button').show();
+		$('#copy-button').text("Copy to Clipboard");
+		$('#dialog-msg').html("<h6>Uploaded Successfully</h6>");
+		$('#url-display-imgur').html('<b><u>Imgur:</u></b> ' + data.data.link);
 		$('#print-result-dialog-container').fadeIn();
       });
     } else {
-        console.log('Image failed to upload to Imgur', response.statusText);
-		$('#copyButton').hide();
-		$('#dialogMsg').text("Upload Failed");
-		$('#urlDisplay').text(response.statusText);
-		$('#print-result-dialog-container').fadeIn();
+        throw new Error('Failed to upload image. Status: ' + response.status);
     }
   })
   .catch(function(error) {
         console.log('Image failed to upload to Imgur', response.statusText);
-		$('#copyButton').hide();
-		$('#dialogMsg').text("Upload Failed");
-		$('#urlDisplay').text(error);
+		$('#copy-button').hide();
+		$('#dialog-msg').text("<h6>Upload Failed</h6>");
+		$('#url-display-imgur').html('<b><u>Imgur:</u></b> ' + error);
+		$('#print-result-dialog-container').fadeIn();
+  });
+}
+
+function uploadImageToDiscord(dataUrl) {
+  // Convert the base64 image data to a Blob object
+  var byteString = atob(dataUrl.split(',')[1]);
+  var mimeType = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+  var arrayBuffer = new ArrayBuffer(byteString.length);
+  var uint8Array = new Uint8Array(arrayBuffer);
+  for (var i = 0; i < byteString.length; i++) {
+    uint8Array[i] = byteString.charCodeAt(i);
+  }
+  var blob = new Blob([arrayBuffer], { type: mimeType });
+
+  // Create a FormData object
+  var formData = new FormData();
+  formData.append('file', blob, 'record-' + currentRecord.rid + '.png');
+  
+  const now = new Date();
+  const formattedDateTime = now.toISOString().replace('T', ' ').replace(/\.\d{3}Z/, '').slice(0, 16);
+
+  var embedData = {	
+    color: 11730954,
+    title: 'Speed Event Record',
+    description: '',
+    fields: [
+      {
+        name: '',
+        value: '---------------------------------------------------------------------------------------------',
+		inline: false,
+      },
+      {
+        name: 'RID:',
+        value: currentRecord.rid,
+		inline: true,
+      },   
+	  {
+        name: 'Timestamp:',
+        value: currentRecord.timestamp,
+		inline: true,
+      },
+      {
+        name: 'User:',
+        value: currentRecord.player,
+		inline: true,
+      },
+      {
+        name: 'Est. Speed:',
+        value: currentRecord.speed + ' ' + velocityUnit,
+		inline: true,
+      },
+      {
+        name: 'Est. Distance:',
+        value: currentRecord.range + ' ' + rangeUnit,
+		inline: true,
+      },
+      {
+        name: 'Est. Geo Location:',
+        value: currentRecord.street,
+		inline: true,
+      },
+      {
+        name: 'Est. Speed Limit:',
+        value: currentRecord.speedlimit + ' ' + velocityUnit,
+		inline: true,
+      },
+	  {
+        name: '',
+        value: '---------------------------------------------------------------------------------------------',
+		inline: false,
+      },
+    ],
+    image: {
+      url: 'attachment://record-' + currentRecord.rid + '.png',
+    },
+    footer: {
+      text: 'Accessed: ' + formattedDateTime,
+    },
+  };
+
+  formData.append('payload_json', JSON.stringify({
+    username: 'ProLaser4',
+    avatar_url: 'https://i.imgur.com/YY12jV8.png',
+    content: '',
+    embeds: [embedData],
+  }));
+
+  formData.append('file', blob, 'record.png');
+
+  fetch(discordApiKey, {
+    method: 'post',
+    body: formData,
+  })
+  .then(function(response) {
+    if (response.ok) {
+      response.json().then(function(data) {
+		if (data.embeds && data.embeds.length > 0 && data.embeds[0].image && data.embeds[0].image.url){
+			console.log('attachment found')
+			console.log('Image uploaded to Discord. URL:', data.embeds[0].image.url);
+			$('#copy-button').show();
+			$('#copy-button').text("Copy to Clipboard");
+			$('#dialog-msg').text("<h6>Uploaded Successfully</h6>");
+			$('#url-display-discord').html('<b><u>Discord:</u></b> ' + data.embeds[0].image.url);
+			$('#print-result-dialog-container').fadeIn();
+		}
+      });
+    } else {
+        throw new Error('Failed to upload image. Status: ' + response.status);
+    }
+  })
+  .catch(function(error) {
+        console.log('Image failed to upload to Discord', response.statusText);
+		$('#copy-button').hide();
+		$('#dialog-msg').text("<h6>Upload Failed</h6>");
+		$('#url-display-discord').html('<b><u>Discord:</u></b> ' + error);
 		$('#print-result-dialog-container').fadeIn();
   });
 }
