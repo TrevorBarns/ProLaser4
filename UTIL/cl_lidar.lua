@@ -48,7 +48,8 @@ end
 -- local function forward declarations
 local GetLidarReturn
 local CheckInputRotation, HandleZoom
-local PlayButtonPressBeep, PlayFastAlertBeep
+local PlayButtonPressBeep
+local IsTriggerControlPressed, IsFpsAimControlPressed, IsFpsUnaimControlPressed, IsTpAimControlPressed, IsTpUnaimControlPressed
 
 --	TOGGLE LIDAR DISPLAY COMMAND
 RegisterCommand('lidar', function(source, args)
@@ -242,17 +243,18 @@ Citizen.CreateThread( function()
 
 		if holdingLidarGun then
 			-- toggle ADS if first person and aim, otherwise unADS
-			if not fpAimDownSight and IsUsingKeyboard(0) and IsControlJustPressed(0,25) and (inFirstPersonPed or inFirstPersonVeh) then
+			if IsFpsAimControlPressed() then
 				fpAimDownSight = true
 				SetPlayerForcedAim(playerId, true)
-			elseif fpAimDownSight and IsUsingKeyboard(0) and (IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0) or not (inFirstPersonPed or inFirstPersonVeh)) then
+			elseif IsFpsUnaimControlPressed() then
 				fpAimDownSight = false
 				SetPlayerForcedAim(playerId, false)
 				-- Simulate control just released, if still holding right click disable the control till they unclick to prevent retoggling accidently
-				while IsControlJustPressed(0,25) or IsDisabledControlPressed(0,25) or IsControlPressed(0,177) or IsDisabledControlPressed(0,177) do
+				while IsControlJustPressed(0,25) or IsDisabledControlPressed(0,25) or IsControlPressed(0,177) or IsDisabledControlPressed(0,177) or IsControlJustPressed(0,68) or IsDisabledControlPressed(0,68) do
 					DisableControlAction(0, 25, true)		-- INPUT_AIM
 					DisableControlAction(0, 177, true)		-- INPUT_CELLPHONE_CANCEL
 					DisableControlAction(0, 68, true)		-- INPUT_VEH_AIM
+					DisableControlAction(0, 68, true)		-- INPUT_VEH_AIM						
 					Wait(1)
 				end
 				Wait(100)
@@ -263,17 +265,17 @@ Citizen.CreateThread( function()
 			
 			-- toggle ADS if in third person and aim, otherwide unaim
 			if not (inFirstPersonPed or inFirstPersonVeh) then
-				if not tpAimDownSight and IsUsingKeyboard(0) and IsControlJustPressed(0,25) then
+				if IsTpAimControlPressed() then
 					tpAimDownSight = true
 					SetPlayerForcedAim(playerId, true)
-				elseif tpAimDownSight and IsUsingKeyboard(0) and (IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0)) then
+				elseif IsTpUnaimControlPressed() then
 					tpAimDownSight = false
 					SetPlayerForcedAim(playerId, false)
 					-- Simulate control just released, if still holding right click disable the control till they unclick to prevent retoggling accidently
-					while IsControlJustPressed(0,25) or IsDisabledControlPressed(0,25) or IsControlPressed(0,177) or IsDisabledControlPressed(0,177) do
+					while IsControlJustPressed(0,25) or IsDisabledControlPressed(0,25) or IsControlPressed(0,177) or IsDisabledControlPressed(0,177) or IsControlJustPressed(0,68) or IsDisabledControlPressed(0,68) do
 						DisableControlAction(0, 25, true)		-- INPUT_AIM
 						DisableControlAction(0, 177, true)		-- INPUT_CELLPHONE_CANCEL
-						DisableControlAction(0, 68, true)		-- INPUT_VEH_AIM
+						DisableControlAction(0, 68, true)		-- INPUT_VEH_AIM						
 						Wait(1)
 					end
 				end
@@ -281,7 +283,7 @@ Citizen.CreateThread( function()
 			
 			--	Get target speed and update display
 			if shown and not tempHidden and selfTestState then
-				if IsDisabledControlPressed(1, cfg.trigger) and IsUsingKeyboard(0) and not isHistoryActive and isAiming and not (tpAimDownSight and (GetGameplayCamRelativeHeading() < -131 or GetGameplayCamRelativeHeading() > 178)) then 
+				if IsTriggerControlPressed() then 
 					found, target = GetEntityPlayerIsFreeAimingAt(playerId)
 					if IsPedInAnyVehicle(target) then
 						target = GetVehiclePedIsIn(target, false)
@@ -335,6 +337,82 @@ Citizen.CreateThread( function()
 		end
 	end
 end)
+
+-- ADVANCED CONTROL HANDLING
+--	Handles controller vs keyboard events, faster validation checking.
+IsTriggerControlPressed = function()
+	if not isAiming then
+		return false
+	end
+
+	if isHistoryActive then
+		return false
+	end
+	
+	-- Angle Limitation
+	if tpAimDownSight and (GetGameplayCamRelativeHeading() < -131 or GetGameplayCamRelativeHeading() > 178) then
+		return false
+	end
+	
+	-- INPUT_ATTACK or INPUT_VEH_HANDBRAKE (LCLICK, SPACEBAR, CONTROLLER RB)
+	if (IsDisabledControlPressed(0, cfg.trigger) and IsUsingKeyboard(0)) or IsControlPressed(0, 76) then
+		return true
+	end
+	return false
+end
+
+-----------------------------------------
+IsFpsAimControlPressed = function()
+	if fpAimDownSight then
+		return false
+	end
+	
+	if not inFirstPersonPed or not inFirstPersonVeh then
+		return false
+	end
+	
+	if IsControlJustPressed(0,25) or IsControlJustPressed(0,68) then
+		return true
+	end
+	return false
+end
+
+-----------------------------------------
+IsFpsUnaimControlPressed= function()
+	if not fpAimDownSight then
+		return false
+	end
+
+	if IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0) or IsControlJustPressed(0,68) or not (inFirstPersonPed or inFirstPersonVeh) then
+		return true
+	end
+	return false
+end
+
+-----------------------------------------
+IsTpAimControlPressed = function()
+	if tpAimDownSight then
+		return false
+	end
+	if (IsControlJustPressed(0,25) and IsUsingKeyboard(0)) or IsControlJustPressed(0,68) then
+		return true
+	end
+	return false
+end
+
+-----------------------------------------
+IsTpUnaimControlPressed = function()
+	if not tpAimDownSight then
+		return false
+	end
+
+	if IsControlJustPressed(0,177) or IsControlJustPressed(0,25) or IsControlJustPressed(0, 0) or IsControlJustPressed(0,68) then
+		return true
+	end
+	return false
+end
+
+-----------------------------------------
 
 -- SCROLL SPEED: handles fast scrolling, if holding scroll increase scroll speed.
 CreateThread(function()
