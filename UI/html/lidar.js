@@ -1,8 +1,8 @@
 // LIDAR
 var lidarOsd;
 var context = new AudioContext();
-var audioPlayer = null;
 var clockTone = createClockTone(context);
+var audioPlayer = null;
 var timerHandle;
 var timerDelta;
 var sniperscope = false;
@@ -76,13 +76,13 @@ $(document).ready(function () {
 	initWidth = document.body.clientWidth;
 	initHeight = document.body.clientHeight;
     $('#hud').hide();
-    $('#lasergun').hide();
+    $('#laser-gun').hide();
     $('#history-container').hide();
     $('#tablet').hide();
     $('#loading-dialog-container').hide();
 	$('#view-record-container').hide();
 	$('#print-result-dialog-container').hide();
-	$('#closeTablet').click(function() { 
+	$('#tablet-close').click(function() { 
 		mapMarkerPageOption = true;
 		$('#btn-own').prop('checked', false);
 		$('#btn-all-players').prop('checked', true);
@@ -124,15 +124,15 @@ $(document).ready(function () {
 		sendDataToLua('SendTheme', themeMode);
 	});
 	
-	$('#printPrintView').click( function() { 
-		if (imgurApiKey != ''){
+	$('#print-view-print').click( function() { 
+		if (imgurApiKey != '' || discordApiKey != ''){
 			$('#tablet').fadeOut();
-			$('.printViewHeader').css('opacity', '0');
+			$('.print-view-header').css('opacity', '0');
 			$('#view-record').addClass('no-border');
 			captureScreenshot();
 			setTimeout(function(){
 				$('#tablet').fadeIn();
-				$('.printViewHeader').css('opacity', '1');
+				$('.print-view-header').css('opacity', '1');
 				$('#view-record').removeClass('no-border');
 			}, 1000)
 		} else {
@@ -143,7 +143,7 @@ $(document).ready(function () {
 		}
 	});
 	
-	$('#closePrintView').click( function() { 
+	$('#print-view-close').click( function() { 
 		map.setOptions({
 		  zoomControl: true,
 		});
@@ -171,7 +171,7 @@ $(document).ready(function () {
 	});
 
 	
-	$('#closePrintDialog').click( function() { 
+	$('#print-dialog-close').click( function() { 
 		$('#print-result-dialog-container').fadeOut();
 	});
 	
@@ -225,34 +225,34 @@ $(document).ready(function () {
     window.addEventListener('message', function (event) {
         if (event.data.action == 'SetLidarDisplayState') {
             if (event.data.state) {
-                $('#lasergun').fadeIn();
+                $('#laser-gun').fadeIn();
             } else {
-                $('#lasergun').fadeOut();
+                $('#laser-gun').fadeOut();
             }
         } else if (event.data.action == 'SendClockData') {
             $('#speed').text(event.data.speed);
             $('#range').text(event.data.range + rangeUnit);
-            $('#rangehud').text(event.data.range + rangeUnit);
+            $('#range-hud').text(event.data.range + rangeUnit);
             $('#timer').text('');
             $('#lock').hide();
             $('#arrowup').hide();
             $('#arrowdown').hide();
             if (event.data.towards == true) {
-                $('#speedhud').text('- ' + event.data.speed);
+                $('#speed-hud').text('- ' + event.data.speed);
                 $('#arrowup').hide();
                 $('#arrowdown').show();
                 timer();
                 clearInterval(clockToneMute);
 				playClockTone();
             } else if (event.data.towards == false) {
-                $('#speedhud').text('+ ' + event.data.speed);
+                $('#speed-hud').text('+ ' + event.data.speed);
                 $('#arrowdown').hide();
                 $('#arrowup').show();
                 timer();
                 clearInterval(clockToneMute);
 				playClockTone();
             } else {
-                $('#speedhud').text('/ ' + event.data.speed);
+                $('#speed-hud').text('/ ' + event.data.speed);
                 clearInterval(clockToneMute);
                 clockTone.vol.gain.exponentialRampToValueAtTime(0.00001,context.currentTime + 0.1
                 );
@@ -261,10 +261,10 @@ $(document).ready(function () {
         } else if (event.data.action == 'SetDisplayMode') {
             if (event.data.mode == 'ADS') {
                 $('#hud').show();
-                $('#lasergun').hide();
+                $('#laser-gun').hide();
             } else {
                 $('#hud').hide();
-                $('#lasergun').show();
+                $('#laser-gun').show();
             }
         } else if (event.data.action == 'SetSelfTestState') {
             if (event.data.state) {
@@ -465,7 +465,7 @@ function createClockTone(audioContext) {
 }
 
 String.prototype.toHHMMSS = function () {
-    var sec_num = parseInt(this, 10); // don't forget the second param
+    var sec_num = parseInt(this, 10);
     var minutes = Math.floor(sec_num / 60000);
     var seconds = Math.floor((sec_num - minutes * 60000) / 1000);
 
@@ -796,8 +796,8 @@ function processRecords(playerName, databaseRecords){
 			'<td class="range">' + record.range + '</td>' +
 			'<td class="player">' + record.player + '</td>' +
 			'<td class="street" textContent="' + speedLimit + '">' + record.street + '</td>' +
-			'<td class="mapping"><button class="tableBtn" id=' + i +' onClick="openInfo(this)"><i class="fa-sharp fa-solid fa-map-location-dot"></i></button></td>' +
-			'<td class="print"><button class="tableBtn" id=' + i +' onClick="openPrintView(this)"><i class="fa-sharp fa-solid fa-print"></i></button></td></tr>'
+			'<td class="mapping"><button class="table-btn" id=' + i +' onClick="openInfo(this)"><i class="fa-sharp fa-solid fa-map-location-dot"></i></button></td>' +
+			'<td class="print"><button class="table-btn" id=' + i +' onClick="openPrintView(this)"><i class="fa-sharp fa-solid fa-print"></i></button></td></tr>'
 		);
 	}
 	$('#tBody').append(tBodyRows.join(''));
@@ -969,7 +969,7 @@ function filterMarkersBySpeed(dataList, speedFilter) {
 	}
 }
 
- function showAllMarkers(dataList) {
+function showAllMarkers(dataList) {
 	for (let i = 0; i < dataList.length; i++) { 
 		dataList[i].marker.setMap(map);
 	}
@@ -1014,7 +1014,7 @@ function openPrintView(element) {
 	// access Date
 	const now = new Date();
 	const formattedDateTime = now.toISOString().replace('T', ' ').replace(/\.\d{3}Z/, '').slice(0, 16);
-	$('#printFooterDate').text(formattedDateTime);
+	$('#print-footer-date').text(formattedDateTime);
 	
 	map.setOptions({
 	  zoomControl: false,
@@ -1023,8 +1023,8 @@ function openPrintView(element) {
 	
 	// copy map window
 	setTimeout(function(){ 
-		document.getElementById('printMap').innerHTML = document.getElementById('map').innerHTML;
-		document.getElementById('printMap').style.cssText = "position: relative; width: 400px; height: 275px; overflow: hidden; margin: auto;";
+		document.getElementById('print-map').innerHTML = document.getElementById('map').innerHTML;
+		document.getElementById('print-map').style.cssText = "position: relative; width: 400px; height: 275px; overflow: hidden; margin: auto;";
 		$('#view-record-container').fadeIn();
 	}, 1000)
 }
