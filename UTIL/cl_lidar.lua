@@ -202,7 +202,7 @@ Citizen.CreateThread( function()
 				DisableControlAction(0, 17, true)				-- INPUT_SELECT_PREV_WEAPON
 			end
 			DisablePlayerFiring(ped, true) 						-- Disable Weapon Firing
-			DisableControlAction(0, cfg.trigger, true) 			-- Disable Trigger Action
+			DisableControlAction(0, 24, true) 					-- Disable Trigger Action
 			DisableControlAction(0, cfg.previousHistory, true) 
 			DisableControlAction(0, cfg.nextHistory, true) 
 			DisableControlAction(0, 142, true) 					-- INPUT_MELEE_ATTACK_ALTERNATE
@@ -369,7 +369,7 @@ IsTriggerControlPressed = function()
 	
 	-- INPUT_ATTACK or INPUT_VEH_HANDBRAKE (LCLICK, SPACEBAR, CONTROLLER RB)
 	--	On foot, LMOUSE and Trigger																		In vehicle RB
-	if (IsDisabledControlPressed(0, cfg.trigger) and (not isInVehicle or isUsingKeyboard)) or (IsControlPressed(0, 76) and isInVehicle)  then
+	if (IsDisabledControlPressed(0, 24) and (not isInVehicle or isUsingKeyboard)) or (IsControlPressed(0, 76) and isInVehicle)  then
 		return true
 	end
 	return false
