@@ -303,7 +303,7 @@ Citizen.CreateThread( function()
 					end
 					speed, range, towards = GetLidarReturn(target, ped)
 					if towards ~= -1 then
-						HUD:SendLidarUpdate(speed, string.format("%.1f", range), towards)
+						HUD:SendLidarUpdate(speed, range, towards)
 						HIST:StoreLidarData(target, speed, range, towards)
 					else
 						HUD:ClearLidarDisplay()
@@ -593,7 +593,7 @@ GetLidarReturn = function(target, ped)
 		--	time between last clock and current
 		timeElapsed = (lastTime - GetGameTimer()) / 1000
 		--	distance over time with conversion from neters to miles.
-		speedEstimate = string.format('%.0f', math.abs((distanceTraveled * velocityScalar) / timeElapsed))
+		speedEstimate = math.abs((distanceTraveled * velocityScalar) / timeElapsed)
 		--	update last values to determine next clock
 		lastDistance, lastTarget, lastTime = distance, target, GetGameTimer()
 	else

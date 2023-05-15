@@ -84,7 +84,7 @@ end)
 --	STORE LAST 100 CLOCKS IN DATA TABLE TO SEND TO NUI FOR DISPLAY
 function HIST:StoreLidarData(target, speed, range, towards)
 	-- format clock data
-	local clockString = string.format("%03d mph %03.1f ft", speed, range)
+	local clockString = string.format("%03.0f mph %03.1f ft", speed, range)
 	if towards then
 		clockString = '-'..clockString
 	else

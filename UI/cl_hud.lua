@@ -42,6 +42,10 @@ end
 
 -- Send Lidar return data
 function HUD:SendLidarUpdate(speed, range, towards)
+	if type(speed) == 'number' or type(range) == 'number' then
+		speed = string.format('%.0f', speed)
+		range = string.format("%.1f", range)
+	end
 	SendNUIMessage({
 		action = "SendClockData",
 		speed = speed,
