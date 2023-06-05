@@ -156,7 +156,7 @@ end)
 
 --	MAIN GET VEHICLE TO CLOCKTHREAD
 Citizen.CreateThread(function()
-	Wait(500)
+	Wait(2000)
 	-- Initalize lidar state and vars LUA->JS
 	HUD:SetSelfTestState(selfTestState, false)
 	HUD:SendBatteryPercentage()
