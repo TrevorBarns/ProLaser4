@@ -207,24 +207,3 @@ CreateThread( function()
 	print('\t^7|    Updates, Support, Feedback: ^5discord.gg/PXQ4T8wB9   ^7|')
 	print('\t^7|_______________________________________________________|\n\n')
 end)
-
---[[SONORAN RADAR / LIDAR JAMMER]]
-if cfg.sonoranJammer then
-	JammedPlates = {}
-
-	RegisterNetEvent('wk_wars2x:SendJammedPlate', function(plate)
-		if JammedPlates[plate] then
-			JammedPlates[plate] = nil
-		else
-			JammedPlates[plate] = true
-		end
-		TriggerClientEvent('wk_wars2x:SendJammedListToClient', -1, JammedPlates)
-	end)
-
-	Citizen.CreateThread(function()
-		while #JammedPlates > 0 do
-			Citizen.Wait(5000)
-			TriggerClientEvent('wk_wars2x:SendJammedListToClient', -1, JammedPlates)
-		end
-	end)
-end
