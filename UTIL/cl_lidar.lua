@@ -58,7 +58,7 @@ RegisterCommand('lidar', function(source, args)
 			HUD:SetLidarDisplayState(false)
 		else
 			HUD:SetLidarDisplayState(true)
-		end	
+		end
 		shown = not shown
 		if not selfTestState and not selfTestInProgress then
 			selfTestInProgress = true
@@ -98,7 +98,7 @@ RegisterCommand('lidarshow', function(source, args)
 				end
 			end
 		end
-		
+
 		if closestPlayer ~= -1 then
 			HUD:GetCurrentDisplayData(GetPlayerServerId(closestPlayer))
 		end
@@ -125,7 +125,7 @@ RegisterNetEvent("prolaser4:ReturnDisplayData")
 AddEventHandler("prolaser4:ReturnDisplayData", function(displayData)
 	if not shown then
 		isCurrentlyBeingShown = false
-		
+
 		HUD:SetSelfTestState(true)
 		if (displayData.onHistory) then
 			HUD:SetHistoryState(true)
@@ -136,7 +136,7 @@ AddEventHandler("prolaser4:ReturnDisplayData", function(displayData)
 		end
 		Wait(500)
 		HUD:SetLidarDisplayState(true)
-		
+
 		isCurrentlyBeingShown = true
 		local timer = GetGameTimer() + 8000
 		while GetGameTimer() < timer do
@@ -146,7 +146,7 @@ AddEventHandler("prolaser4:ReturnDisplayData", function(displayData)
 			end
 			Wait(250)
 		end
-		
+
 		HUD:SetLidarDisplayState(false)
 		Wait(500)
 		HUD:SetHistoryState(false)
@@ -176,7 +176,7 @@ Citizen.CreateThread(function()
 			isInVehicle = IsPedInAnyVehicle(ped, true)
 			isAiming = IsPlayerFreeAiming(playerId)
 			isGtaMenuOpen = IsWarningMessageActive() or IsPauseMenuActive()
-			Citizen.Wait(100)		
+			Citizen.Wait(100)
 		else
 			Citizen.Wait(500)
 		end
@@ -203,8 +203,8 @@ Citizen.CreateThread( function()
 			end
 			DisablePlayerFiring(ped, true) 						-- Disable Weapon Firing
 			DisableControlAction(0, 24, true) 					-- Disable Trigger Action
-			DisableControlAction(0, cfg.previousHistory, true) 
-			DisableControlAction(0, cfg.nextHistory, true) 
+			DisableControlAction(0, cfg.previousHistory, true)
+			DisableControlAction(0, cfg.nextHistory, true)
 			DisableControlAction(0, 142, true) 					-- INPUT_MELEE_ATTACK_ALTERNATE
 		end
 	end
@@ -222,7 +222,7 @@ Citizen.CreateThread( function()
 					if not selfTestState and not selfTestInProgress then
 						selfTestInProgress = true
 						HUD:DisplaySelfTest()
-					end			
+					end
 				end
 				hudMode = true
 				HUD:SetDisplayMode('ADS')
@@ -274,8 +274,8 @@ Citizen.CreateThread( function()
 			elseif not fpAimDownSight and (inFirstPersonPed or inFirstPersonVeh) and isAiming then
 				fpAimDownSight = true
 				SetPlayerForcedAim(playerId, true)
-			end	
-			
+			end
+
 			-- toggle ADS if in third person and aim, otherwide unaim
 			if not (inFirstPersonPed or inFirstPersonVeh) then
 				if IsTpAimControlPressed() then
@@ -288,15 +288,15 @@ Citizen.CreateThread( function()
 					while IsControlJustPressed(0,25) or IsDisabledControlPressed(0,25) or IsControlPressed(0,177) or IsDisabledControlPressed(0,177) or IsControlJustPressed(0,68) or IsDisabledControlPressed(0,68) do
 						DisableControlAction(0, 25, true)		-- INPUT_AIM
 						DisableControlAction(0, 177, true)		-- INPUT_CELLPHONE_CANCEL
-						DisableControlAction(0, 68, true)		-- INPUT_VEH_AIM						
+						DisableControlAction(0, 68, true)		-- INPUT_VEH_AIM
 						Wait(1)
 					end
 				end
 			end
-			
+
 			--	Get target speed and update display
 			if shown and not tempHidden and selfTestState then
-				if IsTriggerControlPressed() then 
+				if IsTriggerControlPressed() then
 					found, target = GetEntityPlayerIsFreeAimingAt(playerId)
 					if IsPedInAnyVehicle(target) then
 						target = GetVehiclePedIsIn(target, false)
@@ -361,12 +361,12 @@ IsTriggerControlPressed = function()
 	if isHistoryActive then
 		return false
 	end
-	
+
 	-- Angle Limitation
 	if tpAimDownSight and (GetGameplayCamRelativeHeading() < -131 or GetGameplayCamRelativeHeading() > 178) then
 		return false
 	end
-	
+
 	-- INPUT_ATTACK or INPUT_VEH_HANDBRAKE (LCLICK, SPACEBAR, CONTROLLER RB)
 	--	On foot, LMOUSE and Trigger																		In vehicle RB
 	if (IsDisabledControlPressed(0, 24) and (not isInVehicle or isUsingKeyboard)) or (IsControlPressed(0, 76) and isInVehicle)  then
@@ -380,16 +380,16 @@ IsFpsAimControlPressed = function()
 	if fpAimDownSight then
 		return false
 	end
-	
+
 	if not inFirstPersonPed or not inFirstPersonVeh then
 		return false
 	end
-	
+
 	-- LBUMPER OR LMOUSE IN VEHICLE
 	if IsControlJustPressed(0,68) and isInVehicle then
 		return true
 	end
-	
+
 	-- LTRIGGER OR LMOUSE ON FOOT
 	if IsControlJustPressed(0, 25) and not isInVehicle then
 		return true
@@ -406,12 +406,12 @@ IsFpsUnaimControlPressed= function()
 	if not (inFirstPersonPed or inFirstPersonVeh) then
 		return true
 	end
-	
+
 	-- LBUMPER OR LMOUSE IN VEHICLE
 	if IsControlJustPressed(0,68) and isInVehicle then
 		return true
 	end
-	
+
 	-- LTRIGGER OR LMOUSE ON FOOT
 	if IsControlJustPressed(0, 25) and not isInVehicle then
 		return true
@@ -421,7 +421,7 @@ IsFpsUnaimControlPressed= function()
 	if (isUsingKeyboard and (IsControlJustPressed(0,177)) or IsControlJustPressed(0, 0)) then
 		return true
 	end
-	
+
 	return false
 end
 
@@ -434,7 +434,7 @@ IsTpAimControlPressed = function()
 	if IsControlJustPressed(0,68) and isInVehicle then
 		return true
 	end
-	
+
 	-- LTRIGGER OR LMOUSE ON FOOT
 	if IsControlJustPressed(0, 25) and not isInVehicle then
 		return true
@@ -447,12 +447,12 @@ IsTpUnaimControlPressed = function()
 	if not tpAimDownSight then
 		return false
 	end
-	
+
 	-- LBUMPER OR LMOUSE IN VEHICLE
 	if IsControlJustPressed(0,68) and isInVehicle then
 		return true
 	end
-	
+
 	-- LTRIGGER OR LMOUSE ON FOOT
 	if IsControlJustPressed(0, 25) and not isInVehicle then
 		return true
@@ -462,7 +462,7 @@ IsTpUnaimControlPressed = function()
 	if (isUsingKeyboard and (IsControlJustPressed(0,177)) or IsControlJustPressed(0, 0)) then
 		return true
 	end
-	
+
 	return false
 end
 
@@ -531,14 +531,14 @@ CreateThread(function()
 					cfg.displayControls = false
 				end
 
-				while fpAimDownSight and not IsEntityDead(ped) do	
+				while fpAimDownSight and not IsEntityDead(ped) do
 					if ((camInVehicle and not isInVehicle) or (not camInVehicle and isInVehicle)) or not holdingLidarGun then
 						fpAimDownSight = false
 						SetPlayerForcedAim(playerId, false)
 						break
 					end
 					zoomvalue = (1.0/(cfg.maxFOV-cfg.minFOV))*(lidarFOV-cfg.minFOV)
-					CheckInputRotation(cam, zoomvalue)			
+					CheckInputRotation(cam, zoomvalue)
 					HandleZoom(cam)
 					Wait(1)
 				end
@@ -562,11 +562,11 @@ GetLidarReturn = function(target, ped)
 	if target == 0 then
 		return 0, 0, -1
 	end
-	
+
 	--	sonoran jammer
 	if cfg.sonoranJammer then
 		if IsEntityAVehicle(target) and next(jammedList) ~= nil then
-			if jammedList[GetVehicleNumberPlateText(target)] then 
+			if jammedList[GetVehicleNumberPlateText(target)] then
 				return 0, 0, -1
 			end
 		end
@@ -580,20 +580,20 @@ GetLidarReturn = function(target, ped)
 		pedHeading = GetEntityHeading(ped) + GetGameplayCamRelativeHeading()
 	end
 	towards = false
-	
+
 	diffHeading = math.abs((pedHeading - targetHeading + 180) % 360 - 180)
-	
+
 	if ( diffHeading > 135 ) then
 		towards = true
 	end
-	
+
 	if diffHeading < 160 and diffHeading > 110 or
 	   diffHeading > 20  and diffHeading < 70 then
 		if math.random(0, 100) > 15 then
 			return 0, 0, -1
 		end
 	end
-	
+
 	targetPos  = GetEntityCoords(target)
 	distance = #(targetPos-GetEntityCoords(ped))
 	if lastDistance ~= 0 and lastTarget == target then
@@ -609,7 +609,7 @@ GetLidarReturn = function(target, ped)
 		lastDistance, lastTarget, lastTime = distance, target, GetGameTimer()
 		return 0, 0, -1
 	end
-	
+
 	return speedEstimate, distance, towards
 end
 
@@ -620,7 +620,7 @@ CheckInputRotation = function(cam, zoomvalue)
 	rotation = GetCamRot(cam, 2)
 	if rightAxisX ~= 0.0 or rightAxisY ~= 0.0 then
 		if isInVehicle then
-			newZ = rotation.z + rightAxisX*-1.0*(cfg.verticalPanSpeed-zoomvalue*8) 
+			newZ = rotation.z + rightAxisX*-1.0*(cfg.verticalPanSpeed-zoomvalue*8)
 			newX = math.max(math.min(20.0, rotation.x + rightAxisY*-1.0*(cfg.horizontalPanSpeed-zoomvalue*8)), -20.0) -- Clamping at top (cant see top of heli) and at bottom (doesn't glitch out in -90deg)
 			SetCamRot(cam, newX, 0.0, newZ, 2)
 			SetGameplayCamRelativeRotation(0.0, 0.0, 0.0)
@@ -631,7 +631,7 @@ CheckInputRotation = function(cam, zoomvalue)
 				SetCamRot(cam, newX, 0.0, newZ, 2)
 				inVehicleDeltaCamRot = (GetCamRot(cam, 2)[3] - GetEntityHeading(ped) + 180) % 360 - 180
 				Wait(1)
-			end			
+			end
 			while inVehicleDeltaCamRot > 178 or (inVehicleDeltaCamRot > -180 and inVehicleDeltaCamRot < -130) do
 				newZ = newZ - 0.2
 				SetCamRot(cam, newX, 0.0, newZ, 2)
@@ -672,7 +672,7 @@ end
 
 --[[SONORAN RADAR / LIDAR JAMMER]]
 if cfg.sonoranJammer then
-	local jammedList = { }
+	jammedList = {}
 
 	RegisterNetEvent( "wk_wars2x:SendJammedListToClient", function (listFromServer)
 		jammedList = listFromServer
