@@ -66,3 +66,7 @@ cfg.discordWebhook = ''
 --[[DEBUGGING]]
 cfg.serverDebugging = true
 --	Increases server console printing.
+
+--[[SONORAN JAMMER]]
+cfg.sonoranJammer = false
+--	If you use Sonoran's Radar Detector/Jammer and would like to PL4 to also be jammed enable this.

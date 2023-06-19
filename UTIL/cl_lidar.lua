@@ -562,6 +562,15 @@ GetLidarReturn = function(target, ped)
 	if target == 0 then
 		return 0, 0, -1
 	end
+	
+	--	sonoran jammer
+	if cfg.sonoranJammer then
+		if IsEntityAVehicle(target) and next(jammedList) ~= nil then
+			if jammedList[GetVehicleNumberPlateText(target)] then 
+				return 0, 0, -1
+			end
+		end
+	end
 
 	--	towards calculations
 	targetHeading = GetEntityHeading(target)
@@ -660,3 +669,13 @@ PlayButtonPressBeep = function()
 	  file   = 'LidarBeep',
 	})
 end
+
+--[[SONORAN RADAR / LIDAR JAMMER]]
+if cfg.sonoranJammer then
+	local jammedList = { }
+
+	RegisterNetEvent( "wk_wars2x:SendJammedListToClient", function (listFromServer)
+		jammedList = listFromServer
+	end)
+end
+
