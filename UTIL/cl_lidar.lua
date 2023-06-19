@@ -50,6 +50,9 @@ local CheckInputRotation, HandleZoom
 local PlayButtonPressBeep
 local IsTriggerControlPressed, IsFpsAimControlPressed, IsFpsUnaimControlPressed, IsTpAimControlPressed, IsTpUnaimControlPressed
 
+-- lidar jamming from sonoran [plate] = state.
+local jammedList = { }
+
 --	TOGGLE LIDAR DISPLAY COMMAND
 RegisterCommand('lidar', function(source, args)
 	if holdingLidarGun and not hudMode then
@@ -672,8 +675,6 @@ end
 
 --[[SONORAN RADAR / LIDAR JAMMER]]
 if cfg.sonoranJammer then
-	local jammedList = { }
-
 	RegisterNetEvent( "wk_wars2x:SendJammedListToClient", function (listFromServer)
 		jammedList = listFromServer
 	end)
