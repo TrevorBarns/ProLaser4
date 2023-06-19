@@ -23,28 +23,28 @@ if cfg.logging and MySQL ~= nil then
 	local isInsertActive = false
 	LOGGED_EVENTS = { }
 	TEMP_LOGGED_EVENTS = { }
-	
+
 	---------------- QUERIES ----------------
 	local insertQuery = [[
-		INSERT INTO prolaser4 
-			(timestamp, speed, distance, targetX, targetY, player, street, selfTestTimestamp) 
-		VALUES 
+		INSERT INTO prolaser4
+			(timestamp, speed, distance, targetX, targetY, player, street, selfTestTimestamp)
+		VALUES
 			(STR_TO_DATE(?, "%m/%d/%Y %H:%i:%s"), ?, ?, ?, ?, ?, ?, STR_TO_DATE(?, "%m/%d/%Y %H:%i:%s"))
 	]]
 	local selectQueryRaw = [[
-			SELECT 
+			SELECT
 				rid,
-				DATE_FORMAT(timestamp, "%c/%d/%y %H:%i") AS timestamp, 
-				speed, 
+				DATE_FORMAT(timestamp, "%c/%d/%y %H:%i") AS timestamp,
+				speed,
 				distance as 'range',
-				targetX, 
-				targetY, 
-				player, 
-				street, 
-				DATE_FORMAT(selfTestTimestamp, "%m/%d/%Y %H:%i") AS selfTestTimestamp 
-			FROM prolaser4 
+				targetX,
+				targetY,
+				player,
+				street,
+				DATE_FORMAT(selfTestTimestamp, "%m/%d/%Y %H:%i") AS selfTestTimestamp
+			FROM prolaser4
 			ORDER BY timestamp
-			LIMIT 
+			LIMIT
 	]]
 	local selectQuery = string.format("%s %s", selectQueryRaw, cfg.loggingSelectLimit)
 	local countQuery = 'SELECT COUNT(*) FROM prolaser4'
@@ -61,7 +61,7 @@ if cfg.logging and MySQL ~= nil then
 			TriggerClientEvent('chat:addMessage', source, { args = { '^1Error', 'This command can only be executed from the console.' } })
 		end
 	end)
-	
+
 	-----------------------------------------
 	-- Main thread, every restart remove old records if needed, insert records every X minutes as defined by cfg.loggingInsertInterval.
 	CreateThread(function()
@@ -117,7 +117,7 @@ if cfg.logging and MySQL ~= nil then
 			end
 		end
 	end
-	
+
 	---------------- GETTER / SELECT ----------------
 	--	C->S request all record data
 	RegisterNetEvent('prolaser4:GetLogData')
@@ -135,7 +135,7 @@ if cfg.logging and MySQL ~= nil then
 			end
 		end)
 	end
-	
+
 	------------------ AUTO CLEANUP -----------------
 	--	Remove old records after X days old.
 	function CleanUpRecordsFromSQL()
@@ -144,7 +144,7 @@ if cfg.logging and MySQL ~= nil then
 			DebugPrint(string.format('^3[INFO]: Removed %s records (older than %s days)^7', returnData.affectedRows, cfg.loggingCleanUpInterval));
 		end)
 	end
-	
+
 	------------------ RECORD COUNT -----------------
 	function GetRecordCount()
 		local recordCount = '^8FAILED TO RETRIEVE        ^7'
@@ -163,14 +163,14 @@ CreateThread( function()
 	local currentVersion = semver(GetResourceMetadata(GetCurrentResourceName(), 'version', 0))
 	local repoVersion = semver('0.0.0')
 	local recordCount = 0
-	
+
 -- Get prolaser4 version from github
 	PerformHttpRequest('https://raw.githubusercontent.com/TrevorBarns/ProLaser4/main/version', function(err, responseText, headers)
 		if responseText ~= nil and responseText ~= '' then
 			repoVersion = semver(responseText:gsub('\n', ''))
 		end
 	end)
-	
+
 	if cfg.logging then
 		if MySQL == nil then
 			print('^3[WARNING]: logging enabled, but oxmysql not found. Did you uncomment the oxmysql\n\t\t  lines in fxmanifest.lua?\n\n\t\t  Remember, changes to fxmanifest are only loaded after running `refresh`, then `restart`.^7')
@@ -179,7 +179,7 @@ CreateThread( function()
 			recordCount = GetRecordCount()
 		end
 	end
-	
+
 	Wait(1000)
 	print('\n\t^7 _______________________________________________________')
     print('\t|^8     ____             __                         __ __ ^7|')
@@ -207,3 +207,24 @@ CreateThread( function()
 	print('\t^7|    Updates, Support, Feedback: ^5discord.gg/PXQ4T8wB9   ^7|')
 	print('\t^7|_______________________________________________________|\n\n')
 end)
+
+--[[SONORAN RADAR / LIDAR JAMMER]]
+if cfg.sonoranJammer then
+	JammedPlates = {}
+
+	RegisterNetEvent('wk_wars2x:SendJammedPlate', function(plate)
+		if JammedPlates[plate] then
+			JammedPlates[plate] = nil
+		else
+			JammedPlates[plate] = true
+		end
+		TriggerClientEvent('wk_wars2x:SendJammedListToClient', -1, JammedPlates)
+	end)
+
+	Citizen.CreateThread(function()
+		while #JammedPlates > 0 do
+			Citizen.Wait(5000)
+			TriggerClientEvent('wk_wars2x:SendJammedListToClient', -1, JammedPlates)
+		end
+	end)
+end
