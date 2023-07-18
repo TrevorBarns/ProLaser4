@@ -1,8 +1,6 @@
 selfTestState = not cfg.performSelfTest
 
 holdingLidarGun = false
-local beingShownLidarGun = false
-
 local cfg = cfg
 local lidarGunHash = GetHashKey(cfg.lidarGunHash)
 local selfTestInProgress = false
@@ -18,6 +16,8 @@ local ped, target
 local playerId = PlayerId()
 local targetHeading, pedHeading, towards
 local lastTarget, lastDistance, lastTime
+local beingShownLidarGun = false
+local mainThreadRunning = true
 
 local lidarFOV = (cfg.minFOV+cfg.maxFOV)*0.5
 local currentLidarFOV
@@ -123,6 +123,35 @@ RegisterCommand('lidarmove', function(source, args)
 end)
 TriggerEvent('chat:addSuggestion', '/lidarmove', 'Move and resize Lidar OSD.', { { name = "reset (opt.)", help = "Optional: resets position and scale of OSD <true/false>." } } );
 
+--Crash recovery command
+RegisterCommand('lidarrecovercrash', function()
+	if not mainThreadRunning then
+		local timer = 3000
+		local blocked = false
+		CreateThread(function()
+			while timer > 0 do
+				timer = timer - 1
+				if mainThreadRunning then
+					blocked = true
+				end
+				Wait(1)
+			end
+		end)
+		
+		if not blocked then
+			print("^3ProLaser4 Development Log: attempting to recover from a crash... This may not work. Please make a bug report with log file.", true)
+			HUD:ShowNotification("~r~ProLaser4 Log~w~: ~y~please make a bug report with log file~w~.")
+			HUD:ShowNotification("~r~ProLaser4 Log~w~: attempting to recover from a crash...")
+			CreateThread(MainThread)
+			return
+		end
+	end
+	print("^3ProLaser4 Development Log: unable to recover, appears to be running. ~y~Please make a bug report with log file~w~.")
+	HUD:ShowNotification("~r~ProLaser4 Log~w~: unable to recover, running. ~y~Please make a bug report with log file~w~.")
+end)
+TriggerEvent('chat:addSuggestion', '/lidarrecovercrash', 'Attempts to recover ProLaser4 after the resource crashed.')
+
+-- /lidarshow event - show lidar display to nearby player.
 RegisterNetEvent("prolaser4:ReturnDisplayData")
 AddEventHandler("prolaser4:ReturnDisplayData", function(displayData)
 	if not shown then
@@ -156,8 +185,9 @@ AddEventHandler("prolaser4:ReturnDisplayData", function(displayData)
 	end
 end)
 
---	MAIN GET VEHICLE TO CLOCKTHREAD
-Citizen.CreateThread(function()
+--	MAIN GET VEHICLE TO CLOCKTHREAD & START UP
+CreateThread(function()
+	CreateThread(MainThread)
 	Wait(2000)
 	-- Initalize lidar state and vars LUA->JS
 	HUD:SetSelfTestState(selfTestState, false)
@@ -242,9 +272,11 @@ Citizen.CreateThread( function()
 end)
 
 --LIDAR MAIN THREAD: handle hiding lidar NUI, self-test, ADS aiming, clocking, and control handling.
-Citizen.CreateThread( function()
-	while true do
-		Citizen.Wait(1)
+function MainThread()
+	while true do		
+		--	Crash recovery variable, resets to true at end of loop.
+		mainThreadRunning = false
+		Wait(1)
 		-- Hide HUD if weapon not selected, keep lidar on
 		if ( ( not holdingLidarGun and not beingShownLidarGun ) or isGtaMenuOpen) and shown and not tempHidden then
 			HUD:SetDisplayMode('DISPLAY')
@@ -350,8 +382,10 @@ Citizen.CreateThread( function()
 		else
 			Wait(500)
 		end
+		-- Crash detection: iteration completed successfully
+		mainThreadRunning = true
 	end
-end)
+end
 
 -- ADVANCED CONTROL HANDLING
 --	Handles controller vs keyboard events, faster validation checking.
