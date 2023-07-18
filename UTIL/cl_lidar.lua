@@ -123,11 +123,10 @@ RegisterCommand('lidarmove', function(source, args)
 end)
 TriggerEvent('chat:addSuggestion', '/lidarmove', 'Move and resize Lidar OSD.', { { name = "reset (opt.)", help = "Optional: resets position and scale of OSD <true/false>." } } );
 
-local isCurrentlyBeingShown = false
 RegisterNetEvent("prolaser4:ReturnDisplayData")
 AddEventHandler("prolaser4:ReturnDisplayData", function(displayData)
 	if not shown then
-		isCurrentlyBeingShown = false
+		beingShownLidarGun = false
 		
 		HUD:SetSelfTestState(true)
 		if (displayData.onHistory) then
@@ -140,11 +139,11 @@ AddEventHandler("prolaser4:ReturnDisplayData", function(displayData)
 		Wait(500)
 		HUD:SetLidarDisplayState(true)
 		
-		isCurrentlyBeingShown = true
+		beingShownLidarGun = true
 		local timer = GetGameTimer() + 8000
 		while GetGameTimer() < timer do
 			-- if displayed again, do not hide return and use new event thread
-			if not isCurrentlyBeingShown then
+			if not beingShownLidarGun then
 				return
 			end
 			Wait(250)
