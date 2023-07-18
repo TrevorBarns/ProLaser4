@@ -139,15 +139,15 @@ RegisterCommand('lidarrecovercrash', function()
 		end)
 		
 		if not blocked then
-			print("^3ProLaser4 Development Log: attempting to recover from a crash... This may not work. Please make a bug report with log file.", true)
-			HUD:ShowNotification("~r~ProLaser4 Log~w~: ~y~please make a bug report with log file~w~.")
-			HUD:ShowNotification("~r~ProLaser4 Log~w~: attempting to recover from a crash...")
+			print("^3ProLaser4 Development Log: attempting to recover from a crash... This may not work. Please make a bug report with log file.")
+			HUD:ShowNotification("~r~ProLaser4~w~: ~y~please make a bug report with log file~w~.")
+			HUD:ShowNotification("~r~ProLaser4~w~: attempting to recover from a crash...")
 			CreateThread(MainThread)
 			return
 		end
 	end
-	print("^3ProLaser4 Development Log: unable to recover, appears to be running. ~y~Please make a bug report with log file~w~.")
-	HUD:ShowNotification("~r~ProLaser4 Log~w~: unable to recover, running. ~y~Please make a bug report with log file~w~.")
+	print("^3ProLaser4 Development: unable to recover, appears to be running. ~y~Please make a bug report with log file~w~.")
+	HUD:ShowNotification("~r~ProLaser4~w~: unable to recover, running. ~y~Please make a bug report with log file~w~.")
 end)
 TriggerEvent('chat:addSuggestion', '/lidarrecovercrash', 'Attempts to recover ProLaser4 after the resource crashed.')
 
