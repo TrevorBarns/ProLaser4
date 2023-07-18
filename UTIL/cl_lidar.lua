@@ -208,18 +208,18 @@ CreateThread(function()
 			isInVehicle = IsPedInAnyVehicle(ped, true)
 			isAiming = IsPlayerFreeAiming(playerId)
 			isGtaMenuOpen = IsWarningMessageActive() or IsPauseMenuActive()
-			Citizen.Wait(100)		
+			Wait(100)		
 		else
-			Citizen.Wait(500)
+			Wait(500)
 		end
 
 	end
 end)
 
 -- REMOVE CONTROLS & HUD MESSAGE
-Citizen.CreateThread( function()
+CreateThread( function()
 	while true do
-		Citizen.Wait(1)
+		Wait(1)
 		if holdingLidarGun then
 			HideHudComponentThisFrame(2)
 			if isAiming then
@@ -243,7 +243,7 @@ Citizen.CreateThread( function()
 end)
 
 -- ADS HUD Call -> JS
-Citizen.CreateThread( function()
+CreateThread( function()
 	while true do
 		if holdingLidarGun or hudMode then
 			inFirstPersonPed = not isInVehicle and GetFollowPedCamViewMode() == 4
