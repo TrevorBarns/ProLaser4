@@ -742,6 +742,15 @@ label[for="btn-all-pages"]:hover:after {
     border-radius: 10px;
 }
 
+#date-time {
+    text-shadow: unset;
+    float: right;
+    margin: 22px 22px 0px 0px;
+    font-size: 16px;
+    color: rgb(147 147 147);
+	cursor: none;
+}
+
 @media (max-width: 2000px) {
   .map-controls-container {
 	margin: 4% 0% 0px -39.9% !important;

@@ -41,7 +41,8 @@ var legendWrapper;
 var currentRecord;
 var themeMode = 0; // 0-light, 1-dark, 2-auto
 var tabletTime;
-var time;
+var gameTime;
+var timeDisplayHandle;
 const darkTime = new Date("1970-01-01T21:30:00");
 const lightTime = new Date("1970-01-01T06:15:00");
 
@@ -211,8 +212,7 @@ $(document).ready(function () {
             } else {
                 $('#speed-hud').text('/ ' + event.data.speed);
                 clearInterval(clockToneMute);
-                clockTone.vol.gain.exponentialRampToValueAtTime(0.00001,context.currentTime + 0.1
-                );
+                clockTone.vol.gain.exponentialRampToValueAtTime(0.00001,context.currentTime + 0.1);
 				clearInterval(timerHandle);
             }
         } else if (event.data.action == 'SetDisplayMode') {
@@ -339,18 +339,22 @@ $(document).ready(function () {
 			}
         } else if (event.data.action == 'SendDatabaseRecords') {
 			playerName = event.data.name;
+			
+			// clock display
+			updateClock();
+			timeDisplayHandle = setInterval(updateClock, 60000);
+			
 			databaseRecords = JSON.parse(event.data.table);
 			updateTabletWindow(playerName, databaseRecords);
 			
 			// time based night mode handling
-			time = date = new Date("1970-01-01");
+			gameTime = date = new Date("1970-01-01");
 			const [hours, minutes, seconds] = event.data.time.split(":");
 			date.setFullYear(1970, 0, 1);
-			time.setHours(hours);
-			time.setMinutes(minutes);
+			gameTime.setHours(hours);
+			gameTime.setMinutes(minutes);
 			if (themeMode == 2) {
-				console.log(time > darkTime, time < lightTime)
-				if (time > darkTime || time < lightTime) {
+				if (gameTime > darkTime || gameTime < lightTime) {
 					$("#theme").attr("href", "dark.css");
 				} else {
 					$("#theme").attr("href", "");
@@ -359,6 +363,7 @@ $(document).ready(function () {
         } else if (event.data.action == 'SetTabletState') {
             if (!event.data.state) {
                 $('#tablet').fadeOut();
+				clearInterval(timeDisplayHandle);
             }  
 		} else if (event.data.action == 'SendResizeAndMove') {
 			if (event.data.reset) {
@@ -1249,8 +1254,8 @@ function RefreshTheme(){
 		$("#theme").attr("href", "dark.css");
 		$("#theme-text").text(' N')
 	} else {
-		if (time && darkTime && lightTime){
-			if (time > darkTime || time < lightTime) {
+		if (gameTime && darkTime && lightTime){
+			if (gameTime > darkTime || gameTime < lightTime) {
 				$("#theme").attr("href", "dark.css");
 			} else {
 				$("#theme").attr("href", "");
@@ -1258,4 +1263,24 @@ function RefreshTheme(){
 		}
 		$("#theme-text").text(' A')				
 	}
+}
+
+function updateClock() {
+	var dateTimeElement = document.getElementById('date-time');
+	var currentTime = new Date();
+	// Extract the individual components
+	var month = currentTime.getUTCMonth() + 1; // Months are zero-based
+	var day = currentTime.getUTCDate();
+	var year = currentTime.getUTCFullYear();
+	var hours = currentTime.getUTCHours();
+	var minutes = currentTime.getUTCMinutes();
+
+	// Add leading zeros if necessary
+	day = day < 10 ? '0' + day : day;
+	hours = hours < 10 ? '0' + hours : hours;
+	minutes = minutes < 10 ? '0' + minutes : minutes;
+
+	// Create the formatted date-time string
+	var dateTimeString = month + '/' + day + '/' + year + ' ' + hours + ':' + minutes;
+	dateTimeElement.textContent = dateTimeString;
 }
