@@ -708,7 +708,7 @@ end
 
 --[[SONORAN RADAR / LIDAR JAMMER]]
 if cfg.sonoranJammer then
-	RegisterNetEvent( "wk_wars2x:SendJammedListToClient", function (listFromServer)
+	RegisterNetEvent( "Sonoran:SendJammedListToClient", function (listFromServer)
 		jammedList = listFromServer
 	end)
 end
