@@ -25,6 +25,9 @@ var lastTop = 0;
 var lastLeft = 0;
 
 // TABLET
+var infowindow;
+var mapOptions;
+var roadmap;
 var map;
 var dataTable;
 var speedLimits = {};
@@ -42,16 +45,10 @@ var time;
 const darkTime = new Date("1970-01-01T21:30:00");
 const lightTime = new Date("1970-01-01T06:15:00");
 
-var infowindow = new google.maps.InfoWindow()
-const mapOptions = {
-	center: new google.maps.LatLng(0, 0),
-	zoom: 2,
-	minZoom: 2,
-	streetViewControl: false,
-	mapTypeControl: false,
-	gestureHandling: 'greedy',
- };
+// Dynamically load map element ensuring no GM API race condition
+window.initMap = initMap;
 
+// Fetch speedlimits json for color coding and filtering.
 fetch('../../speedlimits.json')
   .then(response => response.json())
   .then(data => {
@@ -72,6 +69,13 @@ $(document).keyup(function(event) {
 } );
  
 $(document).ready(function () {
+// Dynamically load script once doc is ready.
+	var googleMapsApiScript = document.createElement('script');
+	googleMapsApiScript.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyDF6OI8FdmtZmgrTsh1yTa__UlwA52BGEQ&callback=initMap';
+	googleMapsApiScript.async = true;
+	document.head.appendChild(googleMapsApiScript);
+
+		
 	lidarOsd = document.getElementById("laser-gun");
 	initWidth = document.body.clientWidth;
 	initHeight = document.body.clientHeight;
@@ -174,54 +178,7 @@ $(document).ready(function () {
 	$('#print-dialog-close').click( function() { 
 		$('#print-result-dialog-container').fadeOut();
 	});
-	
-	// init map
-	map = new google.maps.Map(
-		document.getElementById('map'),
-		mapOptions
-	);
-
-	map.mapTypes.set('gta_roadmap', roadmap);
-	// sets default 'startup' map
-	map.setMapTypeId('gta_roadmap');
-
-	// Define an array of markers with custom icons and labels
-	var markers = [ { icon: '', label: '<div class="legend-spacer" style="margin-top: -16px;">Own</div>' },
-					{ icon: 'textures/map/green-dot-light.png', label: '< Speedlimit' },  
-					{ icon: 'textures/map/yellow-dot-light.png', label: '> Speedlimit' },  
-					{ icon: 'textures/map/red-dot-light.png', label: '> Speedlimit by 10 ' + velocityUnit +'+' },
-					{ icon: '', label: '<div class="legend-spacer" style="margin-top: -8px;">Peers</div>' },
-					{ icon: 'textures/map/green-dot.png', label: '< Speedlimit' },
-					{ icon: 'textures/map/yellow-dot.png', label: '> Speedlimit' },  
-					{ icon: 'textures/map/red-dot.png', label: '> Speedlimit by 10 ' + velocityUnit + '+' } ];
-
-	// Create a new legend control
-	var legend = document.createElement('div');
-	legend.classList.add('legend-container');
-
-	// Loop through the markers array and add each marker to the legend control
-	markers.forEach(function(marker) {
-	  var icon = marker.icon;
-	  var label = marker.label;
-
-	  var legendItem = document.createElement('div');
-	  legendItem.classList.add('legend-item');
-
-	  var iconImg = document.createElement('img');
-	  iconImg.setAttribute('src', icon);
-	  legendItem.appendChild(iconImg);
-
-	  var labelSpan = document.createElement('span');
-	  labelSpan.innerHTML = label;
-	  legendItem.appendChild(labelSpan);
-
-	  legend.appendChild(legendItem);
-	});
-
-	legendWrapper = document.createElement('div');
-	legendWrapper.classList.add('legend-wrapper');
-	legendWrapper.appendChild(legend);
-	
+		
     window.addEventListener('message', function (event) {
         if (event.data.action == 'SetLidarDisplayState') {
             if (event.data.state) {
@@ -620,35 +577,97 @@ $(window).resize(function() {
 // ===== END MAIN SCRIPT ======
 
 // ========= TABLET =========
-// Define our custom map type
-var roadmap = new google.maps.ImageMapType({
-	getTileUrl: function (coords, zoom) {
-		if (
-			coords &&
-			coords.x < Math.pow(2, zoom) &&
-			coords.x > - 1 &&
-			coords.y < Math.pow(2, zoom) &&
-			coords.y > -1
-		) {
-			return (
-				'textures/map/roadmap/' +
-				zoom +
-				'_' +
-				coords.x +
-				'_' +
-				coords.y +
-				'.jpg'
-			);
-		} else {
-			return 'textures/map/roadmap/empty.jpg';
-		}
-	},
-	tileSize: new google.maps.Size(256, 256),
-	maxZoom: 5,
-	minZoom: 2,
-	zoom: 2,
-	name: 'Roadmap',
-});
+
+function initMap(){
+	infowindow = new google.maps.InfoWindow()
+	mapOptions = {
+		center: new google.maps.LatLng(0, 0),
+		zoom: 2,
+		minZoom: 2,
+		streetViewControl: false,
+		mapTypeControl: false,
+		gestureHandling: 'greedy',
+	 };
+
+	// Define our custom map type
+	roadmap = new google.maps.ImageMapType({
+		getTileUrl: function (coords, zoom) {
+			if (
+				coords &&
+				coords.x < Math.pow(2, zoom) &&
+				coords.x > - 1 &&
+				coords.y < Math.pow(2, zoom) &&
+				coords.y > -1
+			) {
+				return (
+					'textures/map/roadmap/' +
+					zoom +
+					'_' +
+					coords.x +
+					'_' +
+					coords.y +
+					'.jpg'
+				);
+			} else {
+				return 'textures/map/roadmap/empty.jpg';
+			}
+		},
+		tileSize: new google.maps.Size(256, 256),
+		maxZoom: 5,
+		minZoom: 2,
+		zoom: 2,
+		name: 'Roadmap',
+	});
+	
+	 // ---------------------
+	 // init map
+	map = new google.maps.Map(
+		document.getElementById('map'),
+		mapOptions
+	);
+
+	map.mapTypes.set('gta_roadmap', roadmap);
+	// sets default 'startup' map
+	map.setMapTypeId('gta_roadmap');
+
+	// Define an array of markers with custom icons and labels
+	var markers = [ { icon: '', label: '<div class="legend-spacer" style="margin-top: -16px;">Own</div>' },
+					{ icon: 'textures/map/green-dot-light.png', label: '< Speedlimit' },  
+					{ icon: 'textures/map/yellow-dot-light.png', label: '> Speedlimit' },  
+					{ icon: 'textures/map/red-dot-light.png', label: '> Speedlimit by 10 ' + velocityUnit +'+' },
+					{ icon: '', label: '<div class="legend-spacer" style="margin-top: -8px;">Peers</div>' },
+					{ icon: 'textures/map/green-dot.png', label: '< Speedlimit' },
+					{ icon: 'textures/map/yellow-dot.png', label: '> Speedlimit' },  
+					{ icon: 'textures/map/red-dot.png', label: '> Speedlimit by 10 ' + velocityUnit + '+' } ];
+
+	// Create a new legend control
+	var legend = document.createElement('div');
+	legend.classList.add('legend-container');
+
+	// Loop through the markers array and add each marker to the legend control
+	markers.forEach(function(marker) {
+	  var icon = marker.icon;
+	  var label = marker.label;
+
+	  var legendItem = document.createElement('div');
+	  legendItem.classList.add('legend-item');
+
+	  var iconImg = document.createElement('img');
+	  iconImg.setAttribute('src', icon);
+	  legendItem.appendChild(iconImg);
+
+	  var labelSpan = document.createElement('span');
+	  labelSpan.innerHTML = label;
+	  legendItem.appendChild(labelSpan);
+
+	  legend.appendChild(legendItem);
+	});
+
+	legendWrapper = document.createElement('div');
+	legendWrapper.classList.add('legend-wrapper');
+	legendWrapper.appendChild(legend);
+}
+
 
 function gtamp2googlepx(x, y) {
 	// IMPORTANT
