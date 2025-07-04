@@ -23,7 +23,6 @@ files {
 	'UI/html/lidar.js',
 	'UI/html/**.css',
 	'UI/html/sounds/*.ogg',
-	'UI/weapons_dlc_bb.png',
 	'metas/*.meta',
 }
 
